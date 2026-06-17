@@ -105,4 +105,29 @@ class ReadmeTest extends TestCase
             'README must reference the core package "lukman-ss/intisari".'
         );
     }
+
+    public function testReadmeContainsCliCommands(): void
+    {
+        $commands = [
+            'php intisari serve',
+            'php intisari route:list',
+            'php intisari config:cache',
+            'php intisari config:clear',
+            'php intisari make:controller UserController',
+            'php intisari make:middleware AuthMiddleware',
+            'php intisari make:provider PaymentServiceProvider',
+            'php intisari make:command SendEmailCommand',
+            'php intisari about',
+            'php intisari env',
+            'php intisari test',
+        ];
+
+        foreach ($commands as $command) {
+            $this->assertStringContainsString(
+                $command,
+                $this->content,
+                "README must explain and document command [{$command}]."
+            );
+        }
+    }
 }

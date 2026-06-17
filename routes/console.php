@@ -74,11 +74,18 @@ $app->command('route:list', static function ($input, $output) use ($app): int {
     $headers = ['Method', 'URI', 'Name', 'Handler'];
     $rows = [];
     foreach ($routes as $route) {
+        if (!is_object($route) || !method_exists($route, 'methods') || !method_exists($route, 'path')) {
+            continue;
+        }
+
+        $handler = method_exists($route, 'handler') ? $route->handler() : null;
+        $name = method_exists($route, 'name') ? $route->name() : '';
+
         $rows[] = [
             implode('|', $route->methods()),
             $route->path(),
-            (string) ($route->name() ?? ''),
-            $formatHandler($route->handler()),
+            (string) ($name ?? ''),
+            $formatHandler($handler),
         ];
     }
 
@@ -256,3 +263,162 @@ PHP;
 
     return 0;
 }, 'Create a new middleware class');
+
+$app->command('make:provider', static function ($input, $output) use ($app): int {
+    $name = $input->argument(0);
+    if (empty($name)) {
+        $output->errorLine('Not enough arguments (missing: "name").');
+        return 1;
+    }
+
+    $name = ucfirst($name);
+    if (!str_ends_with($name, 'ServiceProvider')) {
+        $name .= 'ServiceProvider';
+    }
+
+    $providersDir = $app->path('Providers');
+    if (!is_dir($providersDir)) {
+        mkdir($providersDir, 0777, true);
+    }
+
+    $filePath = $providersDir . '/' . $name . '.php';
+    $force = (bool) $input->option('force', false);
+
+    if (is_file($filePath) && !$force) {
+        $output->writeln('Provider already exists.');
+        return 0;
+    }
+
+    $template = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Providers;
+
+use Intisari\ServiceProvider;
+
+final class {{ClassName}} extends ServiceProvider
+{
+    public function register(): void
+    {
+        //
+    }
+
+    public function boot(): void
+    {
+        //
+    }
+}
+
+PHP;
+
+    $template = str_replace('{{ClassName}}', $name, $template);
+
+    if (file_put_contents($filePath, $template) === false) {
+        $output->errorLine('Failed to create provider.');
+        return 1;
+    }
+
+    $output->writeln('Provider created successfully.');
+
+    return 0;
+}, 'Create a new service provider class');
+
+$app->command('make:command', static function ($input, $output) use ($app): int {
+    $name = $input->argument(0);
+    if (empty($name)) {
+        $output->errorLine('Not enough arguments (missing: "name").');
+        return 1;
+    }
+
+    $name = ucfirst($name);
+    if (!str_ends_with($name, 'Command')) {
+        $name .= 'Command';
+    }
+
+    $commandsDir = $app->path('Commands');
+    if (!is_dir($commandsDir)) {
+        mkdir($commandsDir, 0777, true);
+    }
+
+    $filePath = $commandsDir . '/' . $name . '.php';
+    $force = (bool) $input->option('force', false);
+
+    if (is_file($filePath) && !$force) {
+        $output->writeln('Command already exists.');
+        return 0;
+    }
+
+    $baseName = $name;
+    if (str_ends_with($baseName, 'Command')) {
+        $baseName = substr($baseName, 0, -7);
+    }
+    $commandName = preg_replace('/(?<!^)[A-Z]/', ':$0', $baseName);
+    $commandName = strtolower($commandName);
+
+    $template = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Commands;
+
+use Lukman\Console\Command;
+use Lukman\Console\Input;
+use Lukman\Console\Output;
+
+final class {{ClassName}} extends Command
+{
+    protected string $name = '{{CommandName}}';
+    protected string $description = 'Command description';
+
+    public function handle(Input $input, Output $output): int
+    {
+        return self::SUCCESS;
+    }
+}
+
+PHP;
+
+    $template = str_replace(['{{ClassName}}', '{{CommandName}}'], [$name, $commandName], $template);
+
+    if (file_put_contents($filePath, $template) === false) {
+        $output->errorLine('Failed to create command.');
+        return 1;
+    }
+
+    $output->writeln('Command created successfully.');
+
+    return 0;
+}, 'Create a new console command class');
+
+$app->command('about', static function ($input, $output) use ($app): int {
+    $output->writeln('IntisariPHP');
+    $output->writeln('------------------------------------');
+    $output->writeln('Application Name: ' . $app->config()->get('app.name', 'Intisari App'));
+    $output->writeln('Environment:      ' . $app->environment());
+    $output->writeln('PHP Version:      ' . PHP_VERSION);
+    $output->writeln('Base Path:        ' . $app->basePath());
+
+    return 0;
+}, 'Display basic information about the application');
+
+$app->command('env', static function ($input, $output) use ($app): int {
+    $output->writeln('Current application environment: ' . $app->environment());
+
+    return 0;
+}, 'Display the current application environment');
+
+$app->command('test', static function ($input, $output): int {
+    $isTesting = (getenv('APP_ENV') === 'testing' || ($_ENV['APP_ENV'] ?? null) === 'testing' || ($_SERVER['APP_ENV'] ?? null) === 'testing');
+
+    if ($isTesting) {
+        $output->writeln('Command preview: composer test');
+        return 0;
+    }
+
+    passthru('composer test', $exitCode);
+
+    return $exitCode;
+}, 'Run the application tests');

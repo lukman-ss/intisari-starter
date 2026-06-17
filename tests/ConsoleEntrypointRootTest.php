@@ -388,4 +388,118 @@ final class ConsoleEntrypointRootTest extends TestCase
             unlink($authMiddlewarePath);
         }
     }
+
+    public function testMakeProviderAndCommand(): void
+    {
+        $php = PHP_BINARY ? PHP_BINARY : 'php';
+        $entrypoint = dirname(__DIR__) . '/intisari';
+        
+        $providerPath = dirname(__DIR__) . '/app/Providers/PaymentServiceProvider.php';
+        $commandPath = dirname(__DIR__) . '/app/Commands/SendEmailCommand.php';
+        
+        if (is_file($providerPath)) {
+            unlink($providerPath);
+        }
+        if (is_file($commandPath)) {
+            unlink($commandPath);
+        }
+        
+        // 1. Make provider
+        $output = [];
+        $exitCode = -1;
+        $cmd = sprintf('%s %s make:provider PaymentServiceProvider', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($cmd, $output, $exitCode);
+        
+        $outputStr = implode("\n", $output);
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('Provider created successfully.', $outputStr);
+        $this->assertFileExists($providerPath);
+        
+        $providerContent = file_get_contents($providerPath);
+        $this->assertStringContainsString('declare(strict_types=1);', $providerContent);
+        $this->assertStringContainsString('namespace App\Providers;', $providerContent);
+        $this->assertStringContainsString('class PaymentServiceProvider extends ServiceProvider', $providerContent);
+        
+        // 2. Make command
+        $output2 = [];
+        $exitCode2 = -1;
+        $cmd2 = sprintf('%s %s make:command SendEmailCommand', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($cmd2, $output2, $exitCode2);
+        
+        $outputStr2 = implode("\n", $output2);
+        $this->assertSame(0, $exitCode2);
+        $this->assertStringContainsString('Command created successfully.', $outputStr2);
+        $this->assertFileExists($commandPath);
+        
+        $commandContent = file_get_contents($commandPath);
+        $this->assertStringContainsString('declare(strict_types=1);', $commandContent);
+        $this->assertStringContainsString('namespace App\Commands;', $commandContent);
+        $this->assertStringContainsString('class SendEmailCommand extends Command', $commandContent);
+        $this->assertStringContainsString("protected string \$name = 'send:email';", $commandContent);
+        
+        // 3. Force overwrite
+        file_put_contents($commandPath, 'MODIFIED');
+        
+        $output3 = [];
+        $exitCode3 = -1;
+        $cmd3 = sprintf('%s %s make:command SendEmailCommand --force', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($cmd3, $output3, $exitCode3);
+        
+        $outputStr3 = implode("\n", $output3);
+        $this->assertSame(0, $exitCode3);
+        $this->assertStringContainsString('Command created successfully.', $outputStr3);
+        $this->assertNotSame('MODIFIED', file_get_contents($commandPath));
+        $this->assertStringContainsString('class SendEmailCommand extends Command', file_get_contents($commandPath));
+        
+        if (is_file($providerPath)) {
+            unlink($providerPath);
+        }
+        if (is_file($commandPath)) {
+            unlink($commandPath);
+        }
+    }
+
+    public function testUtilityCommands(): void
+    {
+        $php = PHP_BINARY ? PHP_BINARY : 'php';
+        $entrypoint = dirname(__DIR__) . '/intisari';
+        
+        // 1. Test about command
+        $output = [];
+        $exitCode = -1;
+        $cmd = sprintf('%s %s about', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($cmd, $output, $exitCode);
+        
+        $outputStr = implode("\n", $output);
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('IntisariPHP', $outputStr);
+        $this->assertStringContainsString('Application Name', $outputStr);
+        $this->assertStringContainsString('Environment', $outputStr);
+        $this->assertStringContainsString('PHP Version', $outputStr);
+        $this->assertStringContainsString('Base Path', $outputStr);
+        
+        // 2. Test env command
+        $output2 = [];
+        $exitCode2 = -1;
+        $cmd2 = sprintf('%s %s env', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($cmd2, $output2, $exitCode2);
+        
+        $outputStr2 = implode("\n", $output2);
+        $this->assertSame(0, $exitCode2);
+        $this->assertStringContainsString('Current application environment', $outputStr2);
+        $this->assertStringNotContainsString('DB_PASSWORD', $outputStr2);
+        $this->assertStringNotContainsString('APP_KEY', $outputStr2);
+        
+        // 3. Test test command in testing environment
+        $output3 = [];
+        $exitCode3 = -1;
+        $cmd3 = sprintf('%s %s test', escapeshellarg($php), escapeshellarg($entrypoint));
+        
+        putenv('APP_ENV=testing');
+        exec($cmd3, $output3, $exitCode3);
+        
+        $outputStr3 = implode("\n", $output3);
+        $this->assertSame(0, $exitCode3);
+        $this->assertStringContainsString('Command preview: composer test', $outputStr3);
+    }
 }

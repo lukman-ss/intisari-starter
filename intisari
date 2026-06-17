@@ -3,12 +3,14 @@
 
 declare(strict_types=1);
 
+use Intisari\Application;
+
 require __DIR__ . '/vendor/autoload.php';
 
 $app = require __DIR__ . '/bootstrap/app.php';
 
-if (is_file(__DIR__ . '/routes/console.php')) {
-    require __DIR__ . '/routes/console.php';
-}
+assert($app instanceof Application);
+
+require __DIR__ . '/routes/console.php';
 
 exit($app->runConsole());
