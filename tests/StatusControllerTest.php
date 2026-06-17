@@ -36,9 +36,7 @@ final class StatusControllerTest extends TestCase
         $decoded = json_decode($response->content(), true);
         $this->assertIsArray($decoded, 'Status response must be valid JSON.');
         $this->assertSame('ok', $decoded['status']);
-        $this->assertArrayHasKey('app', $decoded);
-        $this->assertArrayHasKey('environment', $decoded);
-        $this->assertArrayHasKey('php', $decoded);
+        $this->assertSame(['status'], array_keys($decoded));
     }
 
     public function testStatusResponseDoesNotContainSecrets(): void

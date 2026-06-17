@@ -34,10 +34,26 @@ class ReadmeTest extends TestCase
     public function testReadmeContainsCreateProjectCommand(): void
     {
         $this->assertStringContainsString(
-            'composer create-project lukman-ss/intisari-starter',
+            'composer create-project lukman-ss/intisari-starter my-app',
             $this->content,
             'README must contain the "composer create-project" install command.'
         );
+    }
+
+    public function testReadmeContainsImportantLocalDevelopmentCommands(): void
+    {
+        foreach ([
+            'composer create-project lukman-ss/intisari-starter my-app',
+            'cp .env.example .env',
+            'composer serve',
+            'composer test',
+        ] as $command) {
+            $this->assertStringContainsString(
+                $command,
+                $this->content,
+                "README must contain [{$command}]."
+            );
+        }
     }
 
     public function testReadmeContainsCopyEnvCommand(): void

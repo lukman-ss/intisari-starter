@@ -22,7 +22,8 @@
     },
     "scripts": {
         "test": "phpunit",
-        "serve": "php -S 127.0.0.1:8000 -t public"
+        "console": "php intisari",
+        "serve": "php intisari serve"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

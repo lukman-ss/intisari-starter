@@ -45,33 +45,34 @@ composer test
 
 ## Project Structure
 
-```
+```text
 my-app/
-├── app/
-│   ├── Controllers/        # HTTP controllers
-│   ├── Middleware/         # Application middleware
-│   └── Providers/          # Service providers
-├── bootstrap/              # Application bootstrap files
-├── config/                 # Configuration files (app.php, database.php)
-├── public/                 # Web root — entry point (index.php)
-├── resources/              # Views and static assets
-│   └── views/
-├── routes/
-│   ├── web.php             # Web routes
-│   └── console.php         # Console commands
-├── storage/
-│   ├── cache/              # Application cache
-│   ├── logs/               # Log files
-│   └── framework/          # Framework-generated files
-├── tests/                  # Automated tests
-├── .env.example            # Environment variable template
-└── composer.json
+|-- app/
+|   |-- Controllers/        # HTTP controllers
+|   |-- Middleware/         # Application middleware
+|   `-- Providers/          # Service providers
+|-- bootstrap/              # Application bootstrap files
+|-- config/                 # Configuration files
+|-- database/               # Local database files
+|-- public/                 # Web root and front controller
+|-- resources/
+|   `-- views/              # PHP view templates
+|-- routes/
+|   |-- web.php             # Web routes
+|   `-- console.php         # Console commands
+|-- storage/
+|   |-- cache/              # Application cache
+|   |-- logs/               # Log files
+|   `-- framework/          # Framework runtime files
+|-- tests/                  # PHPUnit tests
+|-- .env.example            # Environment variable template
+`-- composer.json
 ```
 
 ## Documentation
 
 For a step-by-step guide, see [docs/getting-started.md](docs/getting-started.md).
 
-## Core Package
+## Framework Dependency
 
-This starter project is powered by [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari) — the core PHP framework engine.
+This starter project is powered by [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari).
