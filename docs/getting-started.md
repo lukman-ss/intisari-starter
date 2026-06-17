@@ -46,6 +46,8 @@ Open `.env` and adjust the values to match your local setup. The default starter
 | `APP_URL` | `http://localhost:8000` | Base URL of the application |
 | `DB_CONNECTION` | `sqlite` | Database driver |
 | `DB_DATABASE` | `database/database.sqlite` | SQLite database path |
+| `SESSION_DRIVER` | `file` | Session storage driver |
+| `SESSION_LIFETIME` | `120` | Session lifetime in minutes |
 
 ## Step 3 - Start the Development Server
 
@@ -76,7 +78,8 @@ my-app/
 |-- bootstrap/              # App initialization
 |-- config/
 |   |-- app.php             # Application settings
-|   `-- database.php        # Database connection settings
+|   |-- database.php        # Database connection settings
+|   `-- session.php         # Session settings
 |-- database/               # Local database files
 |-- public/
 |   `-- index.php           # Front controller
