@@ -148,3 +148,111 @@ $app->command('config:clear', static function ($input, $output) use ($app): int 
 
     return 0;
 }, 'Remove the configuration cache file');
+
+$app->command('make:controller', static function ($input, $output) use ($app): int {
+    $name = $input->argument(0);
+    if (empty($name)) {
+        $output->errorLine('Not enough arguments (missing: "name").');
+        return 1;
+    }
+
+    $name = ucfirst($name);
+    if (!str_ends_with($name, 'Controller')) {
+        $name .= 'Controller';
+    }
+
+    $controllersDir = $app->path('Controllers');
+    if (!is_dir($controllersDir)) {
+        mkdir($controllersDir, 0777, true);
+    }
+
+    $filePath = $controllersDir . '/' . $name . '.php';
+    $force = (bool) $input->option('force', false);
+
+    if (is_file($filePath) && !$force) {
+        $output->writeln('Controller already exists.');
+        return 0;
+    }
+
+    $template = <<<PHP
+<?php
+
+declare(strict_types=1);
+
+namespace App\Controllers;
+
+final class {$name}
+{
+    public function index(): mixed
+    {
+        return null;
+    }
+}
+
+PHP;
+
+    if (file_put_contents($filePath, $template) === false) {
+        $output->errorLine('Failed to create controller.');
+        return 1;
+    }
+
+    $output->writeln('Controller created successfully.');
+
+    return 0;
+}, 'Create a new controller class');
+
+$app->command('make:middleware', static function ($input, $output) use ($app): int {
+    $name = $input->argument(0);
+    if (empty($name)) {
+        $output->errorLine('Not enough arguments (missing: "name").');
+        return 1;
+    }
+
+    $name = ucfirst($name);
+
+    $middlewareDir = $app->path('Middleware');
+    if (!is_dir($middlewareDir)) {
+        mkdir($middlewareDir, 0777, true);
+    }
+
+    $filePath = $middlewareDir . '/' . $name . '.php';
+    $force = (bool) $input->option('force', false);
+
+    if (is_file($filePath) && !$force) {
+        $output->writeln('Middleware already exists.');
+        return 0;
+    }
+
+    $template = <<<'PHP'
+<?php
+
+declare(strict_types=1);
+
+namespace App\Middleware;
+
+use Lukman\Http\MiddlewareInterface;
+use Lukman\Http\Request;
+use Lukman\Http\RequestHandlerInterface;
+use Lukman\Http\Response;
+
+final class {{ClassName}} implements MiddlewareInterface
+{
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle($request);
+    }
+}
+
+PHP;
+
+    $template = str_replace('{{ClassName}}', $name, $template);
+
+    if (file_put_contents($filePath, $template) === false) {
+        $output->errorLine('Failed to create middleware.');
+        return 1;
+    }
+
+    $output->writeln('Middleware created successfully.');
+
+    return 0;
+}, 'Create a new middleware class');

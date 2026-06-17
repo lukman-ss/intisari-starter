@@ -251,4 +251,141 @@ final class ConsoleEntrypointRootTest extends TestCase
             rename($bakPath, $configPath);
         }
     }
+
+    public function testMakeControllerCommand(): void
+    {
+        $php = PHP_BINARY ? PHP_BINARY : 'php';
+        $entrypoint = dirname(__DIR__) . '/intisari';
+        
+        $userControllerPath = dirname(__DIR__) . '/app/Controllers/UserController.php';
+        $productControllerPath = dirname(__DIR__) . '/app/Controllers/ProductController.php';
+        
+        if (is_file($userControllerPath)) {
+            unlink($userControllerPath);
+        }
+        if (is_file($productControllerPath)) {
+            unlink($productControllerPath);
+        }
+        
+        // 1. Make controller by full name (UserController)
+        $output = [];
+        $exitCode = -1;
+        $command = sprintf('%s %s make:controller UserController', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($command, $output, $exitCode);
+        
+        $outputStr = implode("\n", $output);
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('Controller created successfully.', $outputStr);
+        $this->assertFileExists($userControllerPath);
+        
+        // Verify generated PHP has strict types
+        $content = file_get_contents($userControllerPath);
+        $this->assertStringContainsString('declare(strict_types=1);', $content);
+        $this->assertStringContainsString('final class UserController', $content);
+        $this->assertStringContainsString('public function index(): mixed', $content);
+        
+        // 2. Make controller auto suffix (Product -> ProductController)
+        $output2 = [];
+        $exitCode2 = -1;
+        $command2 = sprintf('%s %s make:controller Product', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($command2, $output2, $exitCode2);
+        
+        $outputStr2 = implode("\n", $output2);
+        $this->assertSame(0, $exitCode2);
+        $this->assertStringContainsString('Controller created successfully.', $outputStr2);
+        $this->assertFileExists($productControllerPath);
+        
+        $content2 = file_get_contents($productControllerPath);
+        $this->assertStringContainsString('declare(strict_types=1);', $content2);
+        $this->assertStringContainsString('final class ProductController', $content2);
+        
+        // 3. No overwrite by default
+        file_put_contents($productControllerPath, 'MODIFIED');
+        
+        $output3 = [];
+        $exitCode3 = -1;
+        exec($command2, $output3, $exitCode3);
+        
+        $outputStr3 = implode("\n", $output3);
+        $this->assertSame(0, $exitCode3);
+        $this->assertStringContainsString('Controller already exists.', $outputStr3);
+        $this->assertSame('MODIFIED', file_get_contents($productControllerPath));
+        
+        // 4. Overwrite with --force
+        $output4 = [];
+        $exitCode4 = -1;
+        $command4 = sprintf('%s %s make:controller Product --force', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($command4, $output4, $exitCode4);
+        
+        $outputStr4 = implode("\n", $output4);
+        $this->assertSame(0, $exitCode4);
+        $this->assertStringContainsString('Controller created successfully.', $outputStr4);
+        $this->assertNotSame('MODIFIED', file_get_contents($productControllerPath));
+        $this->assertStringContainsString('final class ProductController', file_get_contents($productControllerPath));
+        
+        if (is_file($userControllerPath)) {
+            unlink($userControllerPath);
+        }
+        if (is_file($productControllerPath)) {
+            unlink($productControllerPath);
+        }
+    }
+
+    public function testMakeMiddlewareCommand(): void
+    {
+        $php = PHP_BINARY ? PHP_BINARY : 'php';
+        $entrypoint = dirname(__DIR__) . '/intisari';
+        
+        $authMiddlewarePath = dirname(__DIR__) . '/app/Middleware/AuthMiddleware.php';
+        
+        if (is_file($authMiddlewarePath)) {
+            unlink($authMiddlewarePath);
+        }
+        
+        // 1. Make middleware
+        $output = [];
+        $exitCode = -1;
+        $command = sprintf('%s %s make:middleware AuthMiddleware', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($command, $output, $exitCode);
+        
+        $outputStr = implode("\n", $output);
+        $this->assertSame(0, $exitCode);
+        $this->assertStringContainsString('Middleware created successfully.', $outputStr);
+        $this->assertFileExists($authMiddlewarePath);
+        
+        // Verify generated contents
+        $content = file_get_contents($authMiddlewarePath);
+        $this->assertStringContainsString('declare(strict_types=1);', $content);
+        $this->assertStringContainsString('namespace App\Middleware;', $content);
+        $this->assertStringContainsString('implements MiddlewareInterface', $content);
+        $this->assertStringContainsString('public function process(Request $request, RequestHandlerInterface $handler): Response', $content);
+        
+        // 2. No overwrite by default
+        file_put_contents($authMiddlewarePath, 'MODIFIED');
+        
+        $output2 = [];
+        $exitCode2 = -1;
+        exec($command, $output2, $exitCode2);
+        
+        $outputStr2 = implode("\n", $output2);
+        $this->assertSame(0, $exitCode2);
+        $this->assertStringContainsString('Middleware already exists.', $outputStr2);
+        $this->assertSame('MODIFIED', file_get_contents($authMiddlewarePath));
+        
+        // 3. Force overwrite
+        $output3 = [];
+        $exitCode3 = -1;
+        $commandForce = sprintf('%s %s make:middleware AuthMiddleware --force', escapeshellarg($php), escapeshellarg($entrypoint));
+        exec($commandForce, $output3, $exitCode3);
+        
+        $outputStr3 = implode("\n", $output3);
+        $this->assertSame(0, $exitCode3);
+        $this->assertStringContainsString('Middleware created successfully.', $outputStr3);
+        $this->assertNotSame('MODIFIED', file_get_contents($authMiddlewarePath));
+        $this->assertStringContainsString('implements MiddlewareInterface', file_get_contents($authMiddlewarePath));
+        
+        if (is_file($authMiddlewarePath)) {
+            unlink($authMiddlewarePath);
+        }
+    }
 }
