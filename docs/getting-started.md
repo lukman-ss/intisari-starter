@@ -1,6 +1,6 @@
 # Getting Started with IntisariPHP Starter
 
-This guide walks you through setting up and running a new IntisariPHP starter project.
+This guide walks you through setting up and running a new IntisariPHP Starter application.
 
 ## Prerequisites
 
@@ -44,6 +44,8 @@ Open `.env` and adjust the values to match your local setup. The default starter
 | `APP_ENV` | `local` | Application environment |
 | `APP_DEBUG` | `true` | Show detailed error messages |
 | `APP_URL` | `http://localhost:8000` | Base URL of the application |
+| `APP_TIMEZONE` | `Asia/Jakarta` | Application timezone |
+| `APP_LOCALE` | `en` | Application locale |
 | `DB_CONNECTION` | `sqlite` | Database driver |
 | `DB_DATABASE` | `database/database.sqlite` | SQLite database path |
 | `SESSION_DRIVER` | `file` | Session storage driver |
@@ -73,7 +75,7 @@ composer test
 my-app/
 |-- app/
 |   |-- Controllers/        # HTTP request handlers
-|   |-- Middleware/         # Request/response middleware
+|   |-- Middleware/         # Application middleware
 |   `-- Providers/          # Service provider registrations
 |-- bootstrap/              # App initialization
 |-- config/
@@ -105,6 +107,10 @@ my-app/
 | `composer serve` | Start the local development server |
 | `composer test` | Run the PHPUnit test suite |
 
-## Framework Dependency
+## Core Package
 
-This starter is built on top of [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari).
+This starter is built on top of [IntisariPHP core](https://packagist.org/packages/lukman-ss/intisari).
+
+## Next Steps
+
+Continue with [Documentation Index](index.md).
