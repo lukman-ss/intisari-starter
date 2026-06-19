@@ -1,20 +1,22 @@
 # Getting Started with IntisariPHP Starter
 
-This guide walks you through setting up and running a new IntisariPHP Starter application.
+This guide walks you through setting up and running a new IntisariPHP Starter application in about five minutes.
 
 ## Prerequisites
 
-- **PHP >= 8.2** - [php.net/downloads](https://www.php.net/downloads)
-- **Composer** - [getcomposer.org](https://getcomposer.org)
+Before you start, make sure you have:
 
-Verify your setup:
+- **PHP 8.2 or newer** — [Download PHP](https://www.php.net/downloads)
+- **Composer** — [Download Composer](https://getcomposer.org)
+
+Verify your setup by running:
 
 ```bash
 php -v
 composer -V
 ```
 
-## Step 1 - Create a New Project
+## Step 1 — Create a New Project
 
 Use `composer create-project` to scaffold a fresh application:
 
@@ -22,28 +24,38 @@ Use `composer create-project` to scaffold a fresh application:
 composer create-project lukman-ss/intisari-starter my-app
 ```
 
-Then navigate into your project directory:
+This command downloads the starter skeleton, installs all dependencies, and configures autoloading.
+
+Navigate into your project directory:
 
 ```bash
 cd my-app
 ```
 
-## Step 2 - Configure Your Environment
+## Step 2 — Configure Your Environment
 
-Copy the environment file template:
+The starter includes an `.env.example` file with default configuration. Copy it to `.env`:
+
+**macOS / Linux:**
 
 ```bash
 cp .env.example .env
 ```
 
-Open `.env` and adjust the values for your local setup. The default variables are:
+**Windows PowerShell:**
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Open `.env` in your editor and adjust the values for your local setup. The default variables are:
 
 | Variable | Default | Description |
 | --- | --- | --- |
 | `APP_NAME` | `Intisari App` | Application display name |
 | `APP_ENV` | `local` | Application environment |
 | `APP_DEBUG` | `true` | Show detailed error messages |
-| `APP_URL` | `http://localhost:8000` | Base URL of the application |
+| `APP_URL` | `http://127.0.0.1:8000` | Base URL of the application |
 | `APP_TIMEZONE` | `Asia/Jakarta` | Application timezone |
 | `APP_LOCALE` | `en` | Application locale |
 | `DB_CONNECTION` | `sqlite` | Database driver |
@@ -51,15 +63,31 @@ Open `.env` and adjust the values for your local setup. The default variables ar
 | `SESSION_DRIVER` | `file` | Session storage driver |
 | `SESSION_LIFETIME` | `120` | Session lifetime in minutes |
 
-## Step 3 - Start the Development Server
+## Step 3 — Start the Development Server
 
-Run the built-in PHP server using the Composer shortcut:
+Start the built-in PHP development server:
 
 ```bash
 composer serve
 ```
 
-This starts the server at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+This runs `php intisari serve` under the hood. The server starts at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+Open this URL in your browser. You should see the IntisariPHP welcome page.
+
+To use a custom host or port:
+
+```bash
+php intisari serve --host=0.0.0.0 --port=8080
+```
+
+The default routes are defined in `routes/web.php`:
+
+```php
+$app->get('/', [HomeController::class, 'index']);
+$app->get('/health', static fn (): string => 'OK');
+$app->get('/status', [StatusController::class, 'index']);
+```
 
 ## Step 4 - Run the Tests
 
@@ -105,7 +133,27 @@ my-app/
 | Command | Description |
 | --- | --- |
 | `composer serve` | Start the local development server |
+| `composer console` | Run the Intisari CLI entry point |
 | `composer test` | Run the PHPUnit test suite |
+
+## Available CLI Commands
+
+These commands are defined in `routes/console.php`:
+
+```bash
+php intisari hello
+php intisari serve
+php intisari route:list
+php intisari config:cache
+php intisari config:clear
+php intisari make:controller UserController
+php intisari make:middleware AuthMiddleware
+php intisari make:provider PaymentServiceProvider
+php intisari make:command SendEmailCommand
+php intisari about
+php intisari env
+php intisari test
+```
 
 ## Core Package
 

@@ -1,45 +1,57 @@
 # Installation
 
-This section explains the standard installation flow for a new IntisariPHP Starter application.
-
-The recommended method is Composer's `create-project` command. It creates a project directory, installs IntisariPHP core, installs development dependencies, and prepares Composer autoloading.
+IntisariPHP Starter is installed via Composer's `create-project` command. The entire process takes less than five minutes.
 
 ## Installation Overview
 
-```text
-create project
-  -> enter project folder
-  -> copy .env
-  -> run local server
-  -> run tests
-```
+| Step | Command | Description |
+|------|---------|-------------|
+| 1. Create project | `composer create-project lukman-ss/intisari-starter my-app` | Downloads the starter and installs dependencies |
+| 2. Enter directory | `cd my-app` | Navigate into your new project |
+| 3. Copy env file | `cp .env.example .env` | Create your local environment configuration |
+| 4. Start server | `composer serve` | Launch the development server |
+| 5. Run tests | `composer test` | Verify the installation |
 
-## Quick Install
+## What Gets Installed
 
-```bash
-composer create-project lukman-ss/intisari-starter my-app
-cd my-app
-cp .env.example .env
-composer serve
-```
+When you run `composer create-project`, the following are set up automatically:
 
-Open the local application:
+- **IntisariPHP core** — the framework runtime, installed into `vendor/`
+- **Development dependencies** — PHPUnit and testing tools
+- **PSR-4 autoloading** — configured for `app/` and `tests/` namespaces
+- **Composer scripts** — `serve`, `test`, `console`
+
+## Environment Setup
+
+The `.env` file stores your local configuration values:
+
+- Application name and environment (`APP_NAME`, `APP_ENV`)
+- Debug mode (`APP_DEBUG`)
+- Application URL (`APP_URL`)
+- Database connection (`DB_*`)
+- Session settings (`SESSION_*`)
+
+**Important:** Do not commit `.env` to version control. Add it to your `.gitignore` file.
+
+## After Installation
+
+Once installation is complete, your application will be available at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-Run the test suite:
+The test suite should pass without errors:
 
-```bash
-composer test
+```text
+OK (X tests, Y assertions)
 ```
 
-## Read More
+## Documentation
 
-- [Composer Installation](composer.md)
-- [Running the Application](running.md)
+- [Composer Installation](composer.md) — detailed installation steps with platform-specific notes
+- [Running the Application](running.md) — starting the development server and running tests
 
-## Next Steps
+## Next
 
-Continue with [Composer Installation](composer.md).
+Continue to [Composer Installation](composer.md).

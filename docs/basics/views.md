@@ -1,43 +1,54 @@
 # Views
 
-Views contain presentation code for HTML output.
+Views are HTML templates that render output to the browser. They live in `resources/views/` and use plain PHP mixed with HTML to display data.
 
-In an MVC-style application, controllers handle the request and views render the response body shown to the user. IntisariPHP Starter stores view files in `resources/views/`.
+## The resources/views/ Directory
 
-## View Folder
-
-The starter includes:
+This directory stores all your view templates. Each view is a PHP file that outputs HTML.
 
 ```text
 resources/views/
-  home.php
-  partials/header.php
-  errors/404.php
-  errors/500.php
+  home.php                Home page
+  layouts/app.php         Base layout
+  partials/header.php     Shared header partial
+  errors/404.php          404 error page
+  errors/500.php          500 error page
 ```
 
-Use this folder for PHP templates, reusable partials, and error pages.
+## Views in MVC
 
-## Simple PHP View
+In the MVC (Model-View-Controller) pattern, views are responsible only for **displaying data**. They should not contain business logic, database queries, or complex calculations.
 
-Example file: `resources/views/home.php`
+The flow works like this:
+
+1. **Controller** receives the request and prepares the data
+2. **View** receives the data from the controller and renders HTML
+3. **HTML** is sent back to the browser
+
+Views should be simple enough that a front-end developer can read and modify them without understanding PHP deeply.
+
+## Simple View Example
+
+Create a view file at `resources/views/home.php`:
 
 ```php
-<?php
-
-declare(strict_types=1);
-?>
-<main>
+<?php declare(strict_types=1); ?>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Welcome</title>
+</head>
+<body>
     <h1>Hello Intisari</h1>
-    <p>Welcome to the application.</p>
-</main>
+    <p>A lightweight PHP application starter.</p>
+</body>
+</html>
 ```
 
-View rendering helpers are IntisariPHP core-dependent features. If your installed version provides a `view()` helper, you can use it from a controller. If not, return an HTML string or a supported response object.
+## Controller Returning a View
 
-## Controller Returning HTML
-
-A controller can return a plain HTML string for a minimal example:
+A controller can render a view and return the HTML:
 
 ```php
 <?php
@@ -55,11 +66,7 @@ final class HomeController
 }
 ```
 
-This is useful as a fallback when view rendering is not configured or while testing a route.
-
-## Rendering Views
-
-If the `view()` helper is available from installed IntisariPHP core view features, a controller can return a rendered view:
+If the `view()` helper is available from IntisariPHP core, you can use it instead:
 
 ```php
 public function index(): string
@@ -68,51 +75,177 @@ public function index(): string
 }
 ```
 
-Check the installed IntisariPHP core documentation for the exact supported view features and helper behavior.
+The `view('home')` function renders `resources/views/home.php` and returns the HTML string.
 
-If view rendering is not available, return an HTML string or a supported response object from the controller.
+### Passing Data to Views
+
+Pass an array of data as the second argument:
+
+```php
+public function index(): string
+{
+    return view('home', [
+        'title' => 'Welcome',
+        'description' => 'A lightweight PHP application starter.',
+    ]);
+}
+```
+
+In the view, access data as PHP variables:
+
+```php
+<h1><?= $title ?></h1>
+<p><?= $description ?></p>
+```
+
+## Controller Returning HTML Directly
+
+For simple pages, a controller can return an HTML string without a view file:
+
+```php
+public function health(): string
+{
+    return '<html><body><h1>OK</h1></body></html>';
+}
+```
+
+For structured pages with data, use view files to keep controllers clean.
 
 ## Escaping Output
 
-Escape dynamic output before printing it in a template.
+Always escape dynamic values before printing them in HTML to prevent XSS (Cross-Site Scripting) attacks.
+
+### Using htmlspecialchars
 
 ```php
-<main>
-    <h1><?= htmlspecialchars($title ?? 'Hello Intisari', ENT_QUOTES, 'UTF-8') ?></h1>
-</main>
+<h1><?= htmlspecialchars($title ?? 'Welcome', ENT_QUOTES, 'UTF-8') ?></h1>
+<p><?= htmlspecialchars($description ?? '', ENT_QUOTES, 'UTF-8') ?></p>
 ```
 
-If your installed view feature provides an escaping helper, use the helper documented by that feature.
+### Using the $e() Helper
+
+If the `$e()` helper is available from IntisariPHP core:
+
+```php
+<h1><?= $e($title ?? 'Welcome') ?></h1>
+<p><?= $e($description ?? '') ?></p>
+```
+
+**Never output raw user input without escaping:**
+
+```php
+<!-- WRONG — XSS vulnerability -->
+<p>Hello, <?= $_GET['name'] ?></p>
+
+<!-- CORRECT — escaped output -->
+<p>Hello, <?= htmlspecialchars($_GET['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
+```
 
 ## Best Practices
 
-- Keep business logic out of views.
-- Escape output before rendering dynamic values.
-- Split reusable markup into partials.
-- Keep controllers responsible for choosing the view and preparing data.
+### Keep Logic Out of Views
 
-## Troubleshooting
+Views should only display data. Move business logic to controllers or service classes.
 
-### File View Not Found
+**Wrong — logic in view:**
 
-Confirm the view file exists under `resources/views/`.
-
-For `view('home')`, the expected starter file is:
-
-```text
-resources/views/home.php
+```php
+<?php
+// Complex calculation inside view
+$total = 0;
+foreach ($orders as $order) {
+    $discount = $order['price'] * 0.1;
+    $total += $order['price'] - $discount;
+}
+?>
+<p>Total: <?= $total ?></p>
 ```
 
-### Wrong Path
+**Correct — logic in controller:**
 
-Use the view name expected by the installed view feature. Do not include a filesystem path unless the core documentation requires it.
+```php
+// Controller
+public function summary(): string
+{
+    $total = $this->calculateTotal($orders);
+    return view('summary', ['total' => $total]);
+}
+```
 
-### PHP Error Inside Template
+```php
+<!-- View -->
+<p>Total: <?= htmlspecialchars($total, ENT_QUOTES, 'UTF-8') ?></p>
+```
 
-A PHP syntax error or undefined variable inside a view can break rendering.
+### Escape All Dynamic Output
 
-Check the template first, then verify that the controller passes or defines the values used by the view.
+Every value that comes from user input, a database, or an external source must be escaped before rendering:
 
-## Next Steps
+```php
+<p><?= htmlspecialchars($userInput, ENT_QUOTES, 'UTF-8') ?></p>
+```
 
-Continue with [Configuration](configuration.md).
+### Split Reusable Partials
+
+If the same HTML appears on multiple pages, extract it into a partial file:
+
+```text
+resources/views/
+  partials/
+    header.php
+    footer.php
+```
+
+Then include the partial in each page:
+
+```php
+<?php include __DIR__ . '/../partials/header.php'; ?>
+
+<main>
+    <h1>Page Content</h1>
+</main>
+
+<?php include __DIR__ . '/../partials/footer.php'; ?>
+```
+
+### Avoid Database Queries Inside Views
+
+Never run SQL queries or fetch data inside a view. Prepare all data in the controller.
+
+**Wrong — query in view:**
+
+```php
+<?php
+$db = new PDO('sqlite:database/database.sqlite');
+$users = $db->query('SELECT * FROM users')->fetchAll();
+?>
+<ul>
+    <?php foreach ($users as $user): ?>
+        <li><?= htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8') ?></li>
+    <?php endforeach; ?>
+</ul>
+```
+
+**Correct — data prepared in controller:**
+
+```php
+// Controller
+public function index(): string
+{
+    $users = $this->db->query('SELECT * FROM users')->fetchAll();
+    return view('users', ['users' => $users]);
+}
+```
+
+```php
+<!-- View -->
+<ul>
+    <?php foreach ($users as $user): ?>
+        <li><?= htmlspecialchars($user['name'], ENT_QUOTES, 'UTF-8') ?></li>
+    <?php endforeach; ?>
+</ul>
+```
+
+## Next
+
+Continue to [Middleware](middleware.md).

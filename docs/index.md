@@ -1,10 +1,12 @@
 # IntisariPHP Starter Documentation
 
-IntisariPHP Starter is a ready-to-run application skeleton for building PHP web applications with IntisariPHP.
+IntisariPHP Starter is a minimal PHP web application skeleton. It provides the project structure you need to start developing: a front controller, routes, controllers, middleware, views, configuration, storage, a CLI, and PHPUnit testing.
 
-IntisariPHP core, provided by `lukman-ss/intisari`, supplies the framework behavior. IntisariPHP Starter provides the application project layout: entry points, routes, controllers, views, configuration, storage directories, command line entry point, and testing setup.
+## What's Included
 
-Use this documentation hub to install the starter, understand the application structure, learn the basic concepts, and build small applications step by step.
+**IntisariPHP core** ([`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari)) is the framework. It provides routing, HTTP handling, dependency injection, configuration, console commands, and view rendering. The core is installed via Composer into `vendor/` and is not modified directly.
+
+**IntisariPHP Starter** is your application. You modify the starter's files — controllers, routes, views, config — to build your project. The starter depends on the core but remains a separate, lightweight skeleton.
 
 ## Quick Start
 
@@ -16,7 +18,9 @@ composer serve
 composer test
 ```
 
-## Documentation Sections
+The application will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+## Documentation Map
 
 ### Introduction
 
@@ -25,13 +29,13 @@ composer test
 
 ### Installation
 
-- [Installation](installation/index.md)
+- [Installation Overview](installation/index.md)
 - [Composer Installation](installation/composer.md)
 - [Running the Application](installation/running.md)
 
 ### Application Overview
 
-- [Application Overview](overview/index.md)
+- [Overview](overview/index.md)
 - [Application Structure](overview/application-structure.md)
 - [Request Lifecycle](overview/request-lifecycle.md)
 
@@ -47,7 +51,7 @@ composer test
 
 - [Database](database/index.md)
 
-### Command Line
+### CLI
 
 - [Command Line Usage](cli/index.md)
 
@@ -62,10 +66,8 @@ composer test
 ### Security
 
 - [Security](security/index.md)
-- [Error Handling and Debugging](general/error-handling.md)
-- [Security Guidelines](general/security.md)
 
 ### Tutorials
 
-- [Build Your First Intisari Application](tutorials/build-your-first-app.md)
-- [Getting Started with REST APIs](tutorials/rest-api.md)
+- [Build Your First App](tutorials/build-your-first-app.md)
+- [REST API Basics](tutorials/rest-api.md)

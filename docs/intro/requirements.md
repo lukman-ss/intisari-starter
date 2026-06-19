@@ -1,35 +1,69 @@
 # Requirements
 
-IntisariPHP Starter requires PHP 8.2 or newer, Composer, and basic terminal usage.
-
-The project declares PHP `>=8.2` in `composer.json`. Composer installs IntisariPHP core, development dependencies, and autoload configuration.
+IntisariPHP Starter requires PHP 8.2 or newer and Composer.
 
 ## Required Software
 
-- PHP 8.2 or newer
-- Composer
-- Basic terminal or command prompt usage
+| Software | Minimum Version | Purpose |
+|----------|----------------|---------|
+| PHP | 8.2 | Runtime |
+| Composer | 2.x | Dependency management |
 
-## Common PHP Extensions
+## PHP Extensions
 
-Exact extension requirements can depend on installed IntisariPHP core features and your application code. For a typical local setup, these PHP extensions are commonly expected:
+The IntisariPHP core depends on these extensions. Most are enabled by default in standard PHP installations.
 
-- `mbstring`
-- `openssl`
-- `pdo`
-- `tokenizer`
-- `json`
+| Extension | Purpose |
+|-----------|---------|
+| `mbstring` | Multibyte string handling for proper character encoding |
+| `openssl` | Encryption and secure communication |
+| `pdo` | Database access via PHP Data Objects |
+| `tokenizer` | PHP code tokenization for route and command parsing |
+| `json` | JSON encoding and decoding for API responses and configuration |
 
-## Check Your Environment
+## Terminal Access
+
+You will use the terminal (command line) throughout development. Common tasks include:
+
+- Running Composer commands to install dependencies.
+- Starting the development server with `composer serve`.
+- Running tests with `composer test`.
+- Generating controllers, middleware, and commands with `php intisari make:*`.
+
+Make sure you can open a terminal and run PHP and Composer commands before continuing with the installation.
+
+**Windows users:** PowerShell, Command Prompt, and Windows Terminal all work. The commands in this guide use Unix-style syntax (`cp`, `ls`). On Windows PowerShell, use `Copy-Item` instead of `cp`.
+
+## Verify Your Setup
+
+Run these commands to confirm your environment is ready:
 
 ```bash
 php -v
+```
+
+This should print PHP 8.2 or newer:
+
+```
+PHP 8.2.x (cli) (built: ...)
+```
+
+```bash
 composer -V
+```
+
+This should print Composer 2.x:
+
+```
+Composer version 2.x.x ...
+```
+
+```bash
 php -m
 ```
 
-Use `php -m` to confirm that common extensions are enabled.
+This lists all enabled PHP extensions. Confirm that `mbstring`, `openssl`, `pdo`, `tokenizer`, and `json` appear in the output.
 
-## Next Steps
+## Next
 
-Continue with [Installation](../installation/index.md).
+Continue to [Installation](../installation/index.md).

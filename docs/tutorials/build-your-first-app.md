@@ -1,65 +1,74 @@
-# Build Your First Intisari Application
+# Build Your First App
 
-This tutorial builds a simple static IntisariPHP Starter application with two pages.
+This tutorial walks you through building a small two-page IntisariPHP application from scratch. No database, no authentication, no middleware — just routes, controllers, and a test.
 
-You will create a project, run the local server, add routes, create a controller, return simple strings, add an `/about` page, write a small test, and run the test command. This tutorial does not use a database.
+## What You Will Build
 
-## 1. Create Project
+- A home page at `/` that returns "Hello Intisari"
+- An about page at `/about` that returns "About Intisari"
+- A PHPUnit test that verifies the home page works
 
-Create a new starter project with Composer:
+**Estimated time:** 10 minutes
+
+## 1. Create the Project
+
+Create a new project using Composer:
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
 cd my-app
 ```
 
-Copy the environment template:
+This downloads the starter, installs all dependencies, and sets up autoloading.
+
+## 2. Copy the Environment File
+
+Copy the example environment file to create your local configuration:
+
+**macOS / Linux:**
 
 ```bash
 cp .env.example .env
 ```
 
-On Windows PowerShell:
+**Windows PowerShell:**
 
-```text
+```powershell
 Copy-Item .env.example .env
 ```
 
-## 2. Run Local Server
+The `.env` file stores your local settings. The defaults work for this tutorial without changes.
 
-Start the local development server:
+## 3. Run the Development Server
+
+Start the built-in development server:
 
 ```bash
 composer serve
 ```
 
-Open:
+You should see:
 
 ```text
+Intisari development server started
 http://127.0.0.1:8000
 ```
 
-The `composer serve` script runs:
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. You should see the default IntisariPHP welcome page.
 
-```bash
-php intisari serve
-```
+## 4. Edit the Home Route
 
-## 3. Add Route `/`
-
-Open `routes/web.php`.
-
-Add or confirm the home route:
+Open `routes/web.php`. The home route already exists:
 
 ```php
 $app->get('/', [HomeController::class, 'index']);
 ```
 
-This route maps `/` to the `index` method on `HomeController`.
+This route maps `GET /` to the `index()` method of `HomeController`. No changes needed here.
 
-## 4. Create Controller
+## 5. Create (or Edit) the HomeController
 
-Create or update `app/Controllers/HomeController.php`:
+Open `app/Controllers/HomeController.php`. Replace the content with:
 
 ```php
 <?php
@@ -77,30 +86,11 @@ final class HomeController
 }
 ```
 
-The controller uses the `App\Controllers` namespace, which matches the starter PSR-4 autoload configuration.
+Save the file and reload [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. You should now see "Hello Intisari" instead of the welcome page.
 
-## 5. Return Simple HTML/String Response
+## 6. Add an About Route
 
-The `index` method returns a string:
-
-```php
-public function index(): string
-{
-    return 'Hello Intisari';
-}
-```
-
-This is the smallest useful response for a static page. HTML strings can also be returned, but plain strings are enough for the first application.
-
-Reload:
-
-```text
-http://127.0.0.1:8000
-```
-
-## 6. Add Second Page `/about`
-
-Add an `about` method to `HomeController`:
+Add a second method to `HomeController`:
 
 ```php
 <?php
@@ -123,7 +113,7 @@ final class HomeController
 }
 ```
 
-Then update `routes/web.php`:
+Now register the new route in `routes/web.php`:
 
 ```php
 use App\Controllers\HomeController;
@@ -132,15 +122,11 @@ $app->get('/', [HomeController::class, 'index']);
 $app->get('/about', [HomeController::class, 'about']);
 ```
 
-Open:
+Open [http://127.0.0.1:8000/about](http://127.0.0.1:8000/about) in your browser. You should see "About Intisari".
 
-```text
-http://127.0.0.1:8000/about
-```
+## 7. Add a PHPUnit Test
 
-## 7. Add Simple Test
-
-Create `tests/Unit/HomeControllerTest.php`:
+Create a test file at `tests/Unit/HomeControllerTest.php`:
 
 ```php
 <?php
@@ -160,77 +146,140 @@ final class HomeControllerTest extends TestCase
 
         $this->assertSame('Hello Intisari', $controller->index());
     }
+
+    public function test_about_returns_string(): void
+    {
+        $controller = new HomeController();
+
+        $this->assertSame('About Intisari', $controller->about());
+    }
 }
 ```
 
-## 8. Run `composer test`
+This test creates a `HomeController` instance and verifies both methods return the expected strings.
 
-Run the starter test command:
+## 8. Run the Tests
 
 ```bash
 composer test
 ```
 
-The starter uses PHPUnit.
+Expected output:
+
+```
+PHPUnit 10.x by Sebastian Bergmann and contributors.
+
+..                                                          2 / 2 (100%)
+
+Time: 00:00.050, Memory: 8.00 MB
+
+OK (2 tests, 2 assertions)
+```
+
+All tests should pass.
 
 ## Final Project Structure
 
+The files you modified or created:
+
 ```text
 my-app/
-  app/
-    Controllers/
-      HomeController.php
-  routes/
-    web.php
-  tests/
-    Unit/
-      HomeControllerTest.php
-  public/
-    index.php
-  composer.json
+  app/Controllers/HomeController.php   ← Edited: added about() method
+  routes/web.php                       ← Edited: added /about route
+  tests/Unit/HomeControllerTest.php    ← Created: new test file
+```
+
+Other important files that were already in place:
+
+```text
+my-app/
+  public/index.php                     ← Front controller
+  bootstrap/app.php                    ← Application bootstrap
+  config/app.php                       ← Application configuration
+  .env                                 ← Local environment settings
+  composer.json                        ← Dependencies and scripts
+  phpunit.xml                          ← Test configuration
 ```
 
 ## Common Mistakes
 
 ### Wrong Namespace
 
-Controllers should use:
+Controllers must use `namespace App\Controllers;` (with an "s").
 
 ```php
+// WRONG
+namespace App\Controller;  // missing "s"
+
+// CORRECT
 namespace App\Controllers;
 ```
 
-### Missing Route Import
+### Missing Import in routes/web.php
 
-Import the controller before using `HomeController::class`.
+Always import the controller class at the top of `routes/web.php`:
 
 ```php
 use App\Controllers\HomeController;
+
+$app->get('/', [HomeController::class, 'index']);
 ```
 
-### Typo in URL
+Without the `use` statement, PHP cannot find the `HomeController` class.
 
-`/about` only works if the route path is also `/about`.
+### Wrong Method Name in Route
 
-### Server Running from Wrong Directory
+The route must reference a method that exists in the controller:
 
-Run the server from the project root:
+```php
+// WRONG — "home" method does not exist
+$app->get('/', [HomeController::class, 'home']);
+
+// CORRECT — "index" method exists
+$app->get('/', [HomeController::class, 'index']);
+```
+
+### URL Typo
+
+The route path must match exactly:
+
+```php
+$app->get('/about', [HomeController::class, 'about']);
+```
+
+- `http://127.0.0.1:8000/about` ✓ works
+- `http://127.0.0.1:8000/About` ✗ case-sensitive, returns 404
+- `http://127.0.0.1:8000/about/` ✗ trailing slash may return 404
+
+### Server Not Running
+
+If you see "Connection refused" in your browser, the development server is not running:
 
 ```bash
 composer serve
 ```
 
-### Test Expectations Changed
+### Missing declare(strict_types=1)
 
-If existing tests assert old controller output, update the test or controller intentionally.
+Always include `declare(strict_types=1);` at the top of PHP files:
 
-## Related Documentation
+```php
+<?php
 
-- [Routing](../basics/routing.md)
-- [Controllers](../basics/controllers.md)
-- [Views](../basics/views.md)
-- [Testing](../testing/index.md)
+declare(strict_types=1);
 
-## Next Steps
+namespace App\Controllers;
+```
 
-Continue with [Routing](../basics/routing.md).
+### Forgetting to Save the File
+
+If your changes don't appear in the browser, make sure you saved the file. The development server reloads files on each request, but unsaved changes won't be picked up.
+
+## What's Next
+
+You now have a working IntisariPHP application with routes, controllers, and tests. Continue learning:
+
+- [Routing](../basics/routing.md) — learn about HTTP methods, parameters, and route organization
+- [Controllers](../basics/controllers.md) — learn about return values, naming conventions, and best practices
+- [Views](../basics/views.md) — learn how to render HTML templates
+- [REST API Basics](rest-api.md) — build a JSON API with IntisariPHP

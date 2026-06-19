@@ -1,97 +1,149 @@
 # Composer Installation
 
-Composer is the standard way to install IntisariPHP Starter.
+IntisariPHP Starter uses Composer's `create-project` command to scaffold a new application. This page covers the installation steps in detail.
 
-The `create-project` command downloads the starter, installs dependencies, and prepares the application for local development.
+## Prerequisites
 
-## Install via Composer
+Before installing, ensure you have:
+
+- **PHP 8.2 or newer** — run `php -v` to check
+- **Composer 2.x** — run `composer -V` to check
+
+See [Requirements](../intro/requirements.md) for a complete list of required PHP extensions.
+
+## Create a New Project
+
+Run the following command to create a new IntisariPHP Starter application:
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
 ```
 
-Enter the project folder:
+This command:
+
+1. Downloads the IntisariPHP Starter skeleton from Packagist.
+2. Resolves and installs the IntisariPHP core framework.
+3. Installs development dependencies (PHPUnit, testing tools).
+4. Generates `composer.lock` to lock dependency versions.
+5. Configures PSR-4 autoloading for `app/` and `tests/` namespaces.
+
+Navigate into your new project:
 
 ```bash
 cd my-app
 ```
 
-## Copy the Environment File
+## Environment Setup
+
+The starter includes an `.env.example` file with default configuration values. You must copy this file to `.env` before running the application.
+
+**macOS and Linux:**
 
 ```bash
 cp .env.example .env
 ```
 
-On Windows PowerShell, use:
+**Windows PowerShell:**
 
-```text
+```powershell
 Copy-Item .env.example .env
 ```
 
-## About `.env`
+**Windows Command Prompt:**
 
-The `.env` file stores local environment values such as application name, environment, debug mode, application URL, database connection, and session settings.
+```cmd
+copy .env.example .env
+```
 
-Do not commit machine-specific or secret values from `.env` to version control. Use `.env.example` as the shared template.
+### Default Environment Values
 
-## Next Command
+The `.env.example` file includes these settings:
 
-After copying `.env`, run the local server:
+```env
+APP_NAME=IntisariPHP
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+```
+
+You can modify these values after installation to match your local environment.
+
+### Security Note
+
+**Do not commit `.env` to version control.** The `.gitignore` file included with the starter already excludes `.env` by default. This prevents sensitive configuration values (database passwords, API keys) from being exposed in your repository.
+
+## Verify the Installation
+
+Start the development server to confirm the installation succeeded:
 
 ```bash
 composer serve
 ```
 
-The local URL is:
+Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. You should see the IntisariPHP welcome page.
 
-```text
-http://127.0.0.1:8000
+Then run the test suite to confirm all components are working:
+
+```bash
+composer test
 ```
 
-## Common Installation Problems
+Expected output:
 
-### PHP Version Too Old
+```text
+PHPUnit 10.x by Sebastian Bergmann and contributors.
 
-The starter requires PHP `>=8.2`.
+OK (X tests, Y assertions)
+```
+
+## Troubleshooting
+
+### PHP version too old
+
+The starter requires PHP 8.2 or newer. If you see a version error, upgrade PHP:
 
 ```bash
 php -v
 ```
 
-Upgrade PHP if the installed version is lower than 8.2.
+On Ubuntu/Debian: `sudo apt install php8.2`
 
-### Composer Not Installed
+On macOS: `brew install php@8.2`
 
-If `composer` is not recognized, install Composer and make sure it is available in your terminal path.
+On Windows: Download from [windows.php.net](https://windows.php.net/download/).
+
+### Composer not installed
+
+If `composer` is not recognized, install Composer from [getcomposer.org](https://getcomposer.org).
 
 ```bash
 composer -V
 ```
 
-### Permission Issue
+### Permission errors
 
-Permission errors usually happen when the current user cannot write to the target directory.
-
-Create the project in a writable directory. Or adjust permissions before running Composer again.
-
-### Missing PHP Extension
-
-Composer may fail when a required PHP extension is missing.
+If Composer cannot write to the target directory, create the project in a writable location:
 
 ```bash
-php -m
+composer create-project lukman-ss/intisari-starter ~/projects/my-app
 ```
 
-Enable the missing extension in your PHP configuration, then rerun the Composer command.
-
-### Missing `.env`
-
-If configuration values are not loaded, confirm `.env` exists in the project root.
-
-```bash
-cp .env.example .env
-```
+Or adjust directory permissions before running the command.
 
 ## Next Steps
 
-Continue with [Running the Application](running.md).
+Once installation is complete:
+
+1. Continue to [Running the Application](running.md) to start the development server.
+2. Read [Application Overview](../overview/index.md) to understand the project structure.
+3. Follow the [Build Your First App](../tutorials/build-your-first-app.md) tutorial.
+
+## Next
+
+Continue to [Running the Application](running.md).

@@ -1,132 +1,197 @@
 # Running the Application
 
-The starter includes a local development server command.
+IntisariPHP Starter includes a built-in development server and test runner. Both are accessible through Composer scripts.
 
-The Composer script uses the `intisari` command line entry point:
-
-```bash
-php intisari serve
-```
-
-## Start the Server
+## Start the Development Server
 
 ```bash
 composer serve
 ```
 
-This starts the application at:
+This command runs `php intisari serve`, which starts PHP's built-in web server.
+
+The application will be available at:
 
 ```text
 http://127.0.0.1:8000
 ```
 
-You can also run the command directly:
+Open this URL in your browser. You should see the IntisariPHP welcome page.
 
-```bash
-php intisari serve
-```
+### Custom Host and Port
 
-You can set the host and port:
+To run the server on a different host or port:
 
 ```bash
 php intisari serve --host=0.0.0.0 --port=8080
 ```
 
-## Run Tests
+Useful scenarios:
 
-The starter includes a Composer test script:
+- `--host=0.0.0.0` — make the server accessible from other devices on your network
+- `--port=8080` — avoid conflicts when port 8000 is already in use
+
+### Stopping the Server
+
+Press `Ctrl + C` in the terminal to stop the development server.
+
+## Run Tests
 
 ```bash
 composer test
 ```
 
-This runs the PHPUnit setup included in the repository.
+This command runs the PHPUnit test suite defined in `phpunit.xml`.
+
+Expected output:
+
+```text
+PHPUnit 10.x by Sebastian Bergmann and contributors.
+
+OK (X tests, Y assertions)
+```
+
+The test suite includes:
+
+- Unit tests for application logic
+- Feature tests for HTTP endpoints
+- Example tests to demonstrate testing patterns
+
+### Run Specific Tests
+
+To run a single test file:
+
+```bash
+vendor/bin/phpunit tests/Feature/ExampleTest.php
+```
+
+To run tests matching a filter:
+
+```bash
+vendor/bin/phpunit --filter testExample
+```
+
+## Environment Configuration
+
+The application reads configuration from your `.env` file. Common settings:
+
+```env
+APP_NAME=IntisariPHP
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+```
+
+If you change `APP_URL`, ensure it matches the actual URL where your application is running.
 
 ## Troubleshooting
 
-### PHP Version Too Old
+### Port already in use
 
-Check the installed PHP version:
-
-```bash
-php -v
-```
-
-IntisariPHP Starter requires PHP `>=8.2`.
-
-### Composer Not Found
-
-Check that Composer is installed and available in your terminal:
-
-```bash
-composer -V
-```
-
-### Port Already in Use
-
-If port `8000` is already used by another process, start the server on another port:
+If port 8000 is occupied, start the server on a different port:
 
 ```bash
 php intisari serve --port=8080
 ```
 
-Then open:
+Or find and stop the process using port 8000:
 
-```text
-http://127.0.0.1:8080
+**macOS/Linux:**
+
+```bash
+lsof -i :8000
+kill -9 <PID>
 ```
 
-### Blank Page
+**Windows PowerShell:**
 
-A blank page usually means an error is hidden or the environment is misconfigured.
-
-Check `.env`, confirm dependencies are installed, and run the server from the project root.
-
-For local debugging, use:
-
-```env
-APP_ENV=local
-APP_DEBUG=true
+```powershell
+Get-NetTCPConnection -LocalPort 8000 | Select-Object OwningProcess
+Stop-Process -Id <PID>
 ```
 
 ### Missing `.env`
 
-If `.env` does not exist, copy it from the template:
+If the application fails to load configuration, copy the environment template:
 
 ```bash
 cp .env.example .env
 ```
 
-### Permission Issue
+Or on Windows PowerShell:
 
-Permission issues usually mean the current user cannot read project files or write runtime files.
-
-Check access to:
-
-```text
-storage/cache
-storage/logs
-storage/framework
+```powershell
+Copy-Item .env.example .env
 ```
 
-### Invalid `.env`
+### Blank page
 
-Invalid or malformed `.env` values can prevent expected configuration from loading.
-
-Check common values:
+If you see a blank page, enable debug mode to see error details:
 
 ```env
 APP_ENV=local
 APP_DEBUG=true
-APP_URL=http://localhost:8000
 ```
 
-If configuration has been cached, clear it after changing `.env`:
+Then check the terminal output for error messages.
+
+### Wrong APP_URL
+
+If links or redirects are not working, ensure `APP_URL` matches your actual server address:
+
+```env
+APP_URL=http://127.0.0.1:8000
+```
+
+Do not use `localhost` if your server is bound to `127.0.0.1`, or vice versa.
+
+### Permission issues
+
+The application needs write access to these directories:
+
+- `storage/cache` — configuration and route cache files
+- `storage/logs` — application log files
+- `storage/framework` — session and view cache files
+
+Create these directories if they don't exist:
 
 ```bash
-php intisari config:clear
+mkdir -p storage/cache storage/logs storage/framework
 ```
 
-## Next Steps
+On Windows PowerShell:
 
-Continue with [Application Overview](../overview/index.md).
+```powershell
+New-Item -ItemType Directory -Force -Path storage/cache, storage/logs, storage/framework
+```
+
+### Database connection error
+
+If you see a database error, ensure SQLite is configured:
+
+```env
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
+
+And create the database file:
+
+```bash
+touch database/database.sqlite
+```
+
+Or on Windows PowerShell:
+
+```powershell
+New-Item -ItemType File -Force -Path database/database.sqlite
+```
+
+## Production Deployment
+
+The development server is not suitable for production. For production deployment, use a proper web server such as Nginx or Apache with PHP-FPM.
+
+See [Deployment](../deployment/index.md) for production configuration guidance.
+
+## Next
+
+Continue to [Application Overview](../overview/index.md).

@@ -1,75 +1,61 @@
 # Application Overview
 
-IntisariPHP Starter uses a simple application structure built around a front controller, route files, controllers, middleware, providers, views, configuration, runtime storage, and tests.
+IntisariPHP Starter organizes code into a small set of directories with clear responsibilities. Understanding this structure helps you know where to place new code.
 
-The starter keeps IntisariPHP core behavior in the installed `lukman-ss/intisari` package and keeps application code in this project.
+## Directory Structure
 
-## Main Folders
-
-- `app/` contains application PHP classes.
-- `bootstrap/` creates and configures the application instance.
-- `config/` stores PHP configuration arrays.
-- `database/` stores local database files.
-- `public/` contains the web entry point.
-- `resources/views/` contains PHP view templates.
-- `routes/` contains HTTP and command line route definitions.
-- `storage/` contains runtime files.
-- `tests/` contains PHPUnit tests.
-
-## Request Entry
-
-The web entry point is `public/index.php`. It loads Composer autoloading, imports the application from `bootstrap/app.php`, loads web routes, and runs the application.
-
-```php
-$app->loadRoutes($app->routesPath('web.php'));
-$app->run();
+```text
+app/              Application classes (controllers, middleware, providers)
+bootstrap/        Application initialization
+config/           Configuration files (app, database, session)
+database/         Local database files
+public/           Web entry point (index.php)
+resources/views/  PHP view templates
+routes/           HTTP routes and CLI commands
+storage/          Cache, logs, and framework runtime files
+tests/            PHPUnit tests
 ```
 
-## Routes
+## Request Flow
 
-Routes are defined in `routes/web.php` for HTTP requests and `routes/console.php` for console commands.
+Every HTTP request follows this path:
 
-```php
-$app->get('/', [HomeController::class, 'index']);
-$app->get('/health', static fn (): string => 'OK');
-```
+1. Web server sends request to `public/index.php`
+2. `bootstrap/app.php` creates the application instance
+3. Configuration is loaded from `config/` and `.env`
+4. Routes are loaded from `routes/web.php`
+5. Middleware processes the request
+6. The matched route handler runs
+7. A response is returned to the browser
 
-## Controllers
+## Key Files
 
-Controllers live in `app/Controllers/`. They keep request handling code separate from route definitions.
+| File | Purpose |
+|------|---------|
+| `public/index.php` | Front controller — all web requests enter here |
+| `bootstrap/app.php` | Creates the application, loads env and config |
+| `routes/web.php` | HTTP route definitions |
+| `routes/console.php` | CLI command definitions |
+| `config/app.php` | Application settings, providers, middleware |
+| `intisari` | CLI entry point |
 
-The starter includes `HomeController` and `StatusController`.
+## Where to Put Your Code
 
-## Middleware and Providers
+| Task | Directory |
+|------|-----------|
+| Handle HTTP requests | `app/Controllers/` |
+| Add request/response middleware | `app/Middleware/` |
+| Register services or bindings | `app/Providers/` |
+| Define routes | `routes/web.php` |
+| Add CLI commands | `routes/console.php` |
+| Create view templates | `resources/views/` |
+| Write tests | `tests/` |
 
-Middleware lives in `app/Middleware/` and can wrap request handling. The starter includes `ExampleMiddleware`.
+## Documentation
 
-Providers live in `app/Providers/` and are used for application bootstrapping. The starter includes `AppServiceProvider`.
+- [Application Structure](application-structure.md) — detailed directory reference
+- [Request Lifecycle](request-lifecycle.md) — step-by-step request processing
 
-## Views
+## Next
 
-Views live in `resources/views/`. The default home page uses PHP view templates and a layout file.
-
-View rendering depends on the installed IntisariPHP core view features.
-
-## Configuration
-
-Configuration files live in `config/` and return PHP arrays. The starter includes application, database, and session configuration files.
-
-Environment values are loaded from `.env` when the file exists.
-
-## Storage
-
-Runtime files belong in `storage/`. The starter includes directories for cache, logs, and framework runtime files.
-
-## Tests
-
-Tests live in `tests/` and run through PHPUnit.
-
-```bash
-composer test
-```
-
-## Next Steps
-
-Continue with [Application Structure](application-structure.md).
+Continue to [Application Structure](application-structure.md).
