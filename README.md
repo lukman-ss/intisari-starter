@@ -50,6 +50,55 @@ storage/      Runtime files
 tests/        PHPUnit tests
 ```
 
+## Console Commands (CLI)
+
+The application comes with the `intisari` command-line utility. You can use it to perform various tasks:
+
+- Start development server:
+  ```bash
+  php intisari serve
+  ```
+- List all registered routes:
+  ```bash
+  php intisari route:list
+  ```
+- Cache configuration files:
+  ```bash
+  php intisari config:cache
+  ```
+- Clear configuration cache:
+  ```bash
+  php intisari config:clear
+  ```
+- Create a new controller:
+  ```bash
+  php intisari make:controller UserController
+  ```
+- Create a new middleware:
+  ```bash
+  php intisari make:middleware AuthMiddleware
+  ```
+- Create a new service provider:
+  ```bash
+  php intisari make:provider PaymentServiceProvider
+  ```
+- Create a new console command:
+  ```bash
+  php intisari make:command SendEmailCommand
+  ```
+- View application environment details:
+  ```bash
+  php intisari env
+  ```
+- Display information about the application:
+  ```bash
+  php intisari about
+  ```
+- Run tests:
+  ```bash
+  php intisari test
+  ```
+
 ## Documentation
 
 - [Documentation Index](docs/index.md)
