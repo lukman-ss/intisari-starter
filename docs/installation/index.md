@@ -1,45 +1,41 @@
 # Installation
 
-This section explains how to create and run a new IntisariPHP Starter application.
+This section explains the standard installation flow for a new IntisariPHP Starter application.
 
-The recommended installation method is Composer's `create-project` command. It creates a new application directory, installs IntisariPHP core, and prepares Composer autoloading for the `App\` namespace.
+The recommended method is Composer's `create-project` command. It creates a project directory, installs IntisariPHP core, installs development dependencies, and prepares Composer autoloading.
 
-## Recommended Method
+## Installation Overview
+
+```text
+create project
+  -> enter project folder
+  -> copy .env
+  -> run local server
+  -> run tests
+```
+
+## Quick Install
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
 cd my-app
-```
-
-After installation, copy the environment file:
-
-```bash
 cp .env.example .env
+composer serve
 ```
 
-## Folder Result
-
-A new application contains the starter project structure:
+Open the local application:
 
 ```text
-my-app/
-  app/
-  bootstrap/
-  config/
-  database/
-  public/
-  resources/
-  routes/
-  storage/
-  tests/
-  .env.example
-  composer.json
-  intisari
+http://127.0.0.1:8000
 ```
 
-The `vendor/` directory is created by Composer and contains installed dependencies, including the IntisariPHP core package.
+Run the test suite:
 
-## Installation Topics
+```bash
+composer test
+```
+
+## Read More
 
 - [Composer Installation](composer.md)
 - [Running the Application](running.md)

@@ -2,7 +2,7 @@
 
 IntisariPHP Starter uses PHPUnit for automated tests.
 
-The starter includes a `phpunit.xml` file and a `tests/` directory. Composer provides a `test` script for running the test suite.
+The starter includes a `tests/` directory and a `phpunit.xml` configuration file. Composer provides a `test` script for running PHPUnit.
 
 ## Running Tests
 
@@ -10,15 +10,11 @@ The starter includes a `phpunit.xml` file and a `tests/` directory. Composer pro
 composer test
 ```
 
-Or:
-
-```bash
-php intisari test
-```
+This command runs the PHPUnit configuration included with the starter.
 
 ## Writing Your First Test
 
-Create a test class under `tests/`.
+Create a test class under `tests/`:
 
 ```php
 <?php
@@ -46,30 +42,36 @@ composer test
 
 ## Organizing Tests
 
-The starter uses this testing structure:
+The required testing structure is:
 
 ```text
 tests/
 phpunit.xml
 ```
 
-The repository also includes `tests/Feature/`, `tests/Unit/`, and `tests/TestCase.php`.
+The repository also includes:
+
+```text
+tests/Feature/
+tests/Unit/
+tests/TestCase.php
+```
 
 Use `tests/Unit/` for isolated logic and `tests/Feature/` for broader application behavior when that structure fits your project.
 
-## Testing Routes and Controllers
+## Testing Controllers Conceptually
 
-The starter includes tests that cover routes, views, bootstrap behavior, public entry points, and console entry points.
+Controllers can be tested as regular PHP classes when their methods have simple inputs and outputs.
 
-For HTTP testing, use the test utilities available in installed IntisariPHP core packages if your version provides them. Do not assume a specific HTTP helper API unless it exists in your project.
-
-At a minimum, controllers can be tested as regular PHP classes when their methods have simple inputs and outputs.
+Example:
 
 ```php
 $controller = new \App\Controllers\HomeController();
 
 $this->assertIsString($controller->index());
 ```
+
+For HTTP testing, use test utilities only if they are available in your installed IntisariPHP core packages. Do not assume a specific HTTP testing helper exists.
 
 ## Common Test Failures
 

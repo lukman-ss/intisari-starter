@@ -26,15 +26,29 @@ composer.json
 
 ## `app/`
 
-Contains application-specific PHP classes.
+Function: contains application-specific PHP classes.
 
-Use this folder when adding code that belongs to your application rather than IntisariPHP core.
+Use it when adding code that belongs to your application rather than IntisariPHP core.
+
+Common examples:
+
+```text
+app/Controllers/HomeController.php
+app/Middleware/ExampleMiddleware.php
+app/Providers/AppServiceProvider.php
+```
 
 ## `app/Controllers/`
 
-Contains HTTP controllers.
+Function: contains HTTP controllers.
 
-Use this folder when a route needs a controller method instead of an inline closure.
+Use it when a route needs a controller method instead of an inline closure.
+
+Example file:
+
+```text
+app/Controllers/StatusController.php
+```
 
 ```php
 $app->get('/status', [StatusController::class, 'index']);
@@ -42,63 +56,136 @@ $app->get('/status', [StatusController::class, 'index']);
 
 ## `app/Middleware/`
 
-Contains application middleware.
+Function: contains application middleware.
 
-Use this folder for request or response handling that should wrap route execution. Middleware behavior depends on installed IntisariPHP core features.
+Use it for request or response handling that should wrap route execution. Middleware behavior depends on installed IntisariPHP core features.
+
+Example file:
+
+```text
+app/Middleware/ExampleMiddleware.php
+```
 
 ## `app/Providers/`
 
-Contains service providers.
+Function: contains service providers.
 
-Use this folder when registering application services or bootstrapping application-specific behavior.
+Use it when registering application services or bootstrapping application-specific behavior.
+
+Example file:
+
+```text
+app/Providers/AppServiceProvider.php
+```
 
 ## `bootstrap/`
 
-Contains application bootstrap files.
+Function: contains application bootstrap files.
 
-`bootstrap/app.php` creates the application instance, loads `.env`, loads configuration, and registers the application service provider.
+Use it for application startup wiring. `bootstrap/app.php` creates the application instance, loads `.env`, loads configuration, and registers the application service provider.
+
+Example file:
+
+```text
+bootstrap/app.php
+```
 
 ## `config/`
 
-Contains PHP configuration files.
+Function: contains PHP configuration files.
 
-Use this folder for application, database, and session settings.
+Use it for application, database, and session settings.
+
+Example files:
+
+```text
+config/app.php
+config/database.php
+config/session.php
+```
 
 ## `database/`
 
-Contains local database-related files.
+Function: contains local database-related files.
 
-The starter uses this folder for the default SQLite database path when configured.
+Use it for local database files. The starter uses this folder for the default SQLite database path when configured.
+
+Example file:
+
+```text
+database/database.sqlite
+```
+
+The SQLite file is not created by default.
 
 ## `public/`
 
-Contains the public web entry point.
+Function: contains the public web entry point.
 
-`public/index.php` should be the web server document root entry point.
+Use it as the web server document root. `public/index.php` should be the only public entry point.
+
+Example file:
+
+```text
+public/index.php
+```
 
 ## `resources/views/`
 
-Contains PHP view templates.
+Function: contains PHP view templates.
 
-Use this folder for pages, layouts, partials, and error views used by the application.
+Use it for pages, layouts, partials, and error views used by the application.
+
+Example files:
+
+```text
+resources/views/home.php
+resources/views/layouts/app.php
+resources/views/partials/header.php
+resources/views/errors/404.php
+resources/views/errors/500.php
+```
 
 ## `routes/`
 
-Contains route definitions.
+Function: contains route definitions.
 
 Use `routes/web.php` for HTTP routes and `routes/console.php` for console commands.
 
+Example files:
+
+```text
+routes/web.php
+routes/console.php
+```
+
 ## `storage/`
 
-Contains runtime files.
+Function: contains runtime files.
 
 Use this folder for cache, logs, and framework runtime files. The application must be able to write to relevant storage paths.
 
+Example paths:
+
+```text
+storage/cache/
+storage/logs/
+storage/framework/
+```
+
 ## `tests/`
 
-Contains PHPUnit tests.
+Function: contains PHPUnit tests.
 
 Use this folder when adding application tests.
+
+Example files:
+
+```text
+tests/TestCase.php
+tests/Feature/HomePageTest.php
+tests/Unit/ExampleTest.php
+```
 
 ## `.env.example`
 
@@ -118,4 +205,4 @@ Use it to review required packages and available scripts such as `composer serve
 
 ## Next Steps
 
-Continue with [Application Lifecycle](lifecycle.md).
+Continue with [Request Lifecycle](request-lifecycle.md).

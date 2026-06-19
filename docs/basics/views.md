@@ -11,13 +11,12 @@ The starter includes:
 ```text
 resources/views/
   home.php
-  layouts/app.php
   partials/header.php
   errors/404.php
   errors/500.php
 ```
 
-Use this folder for PHP templates, layouts, partials, and error pages.
+Use this folder for PHP templates, reusable partials, and error pages.
 
 ## Simple PHP View
 
@@ -34,7 +33,7 @@ declare(strict_types=1);
 </main>
 ```
 
-The default starter view uses PHP template helpers such as `$e`, `$extend`, `$start`, and `$end` when the installed view feature provides them.
+View rendering helpers are IntisariPHP core-dependent features. If your installed version provides a `view()` helper, you can use it from a controller. If not, return an HTML string or a supported response object.
 
 ## Controller Returning HTML
 
@@ -73,23 +72,17 @@ Check the installed IntisariPHP core documentation for the exact supported view 
 
 If view rendering is not available, return an HTML string or a supported response object from the controller.
 
-## Layout and Escaping
+## Escaping Output
 
-The starter's default view uses a layout and escaped output:
+Escape dynamic output before printing it in a template.
 
 ```php
-$extend('layouts.app');
-
-$start('content');
-?>
 <main>
-    <h1><?= $e('Hello') ?></h1>
+    <h1><?= htmlspecialchars($title ?? 'Hello Intisari', ENT_QUOTES, 'UTF-8') ?></h1>
 </main>
-<?php
-$end();
 ```
 
-Escape dynamic output before printing it in a template. The starter examples use `$e()` when that helper is available.
+If your installed view feature provides an escaping helper, use the helper documented by that feature.
 
 ## Best Practices
 

@@ -1,19 +1,26 @@
 # Application Overview
 
-IntisariPHP Starter uses a simple application architecture built around a front controller, route files, controllers, views, configuration, runtime storage, and tests.
+IntisariPHP Starter uses a simple application structure built around a front controller, route files, controllers, middleware, providers, views, configuration, runtime storage, and tests.
 
 The starter keeps IntisariPHP core behavior in the installed `lukman-ss/intisari` package and keeps application code in this project.
 
-## Front Controller
+## Main Folders
 
-The web entry point is `public/index.php`.
+- `app/` contains application PHP classes.
+- `bootstrap/` creates and configures the application instance.
+- `config/` stores PHP configuration arrays.
+- `database/` stores local database files.
+- `public/` contains the web entry point.
+- `resources/views/` contains PHP view templates.
+- `routes/` contains HTTP and command line route definitions.
+- `storage/` contains runtime files.
+- `tests/` contains PHPUnit tests.
 
-It loads Composer autoloading, gets the configured application instance from `bootstrap/app.php`, loads web routes, and runs the application.
+## Request Entry
+
+The web entry point is `public/index.php`. It loads Composer autoloading, imports the application from `bootstrap/app.php`, loads web routes, and runs the application.
 
 ```php
-require dirname(__DIR__) . '/vendor/autoload.php';
-
-$app = require dirname(__DIR__) . '/bootstrap/app.php';
 $app->loadRoutes($app->routesPath('web.php'));
 $app->run();
 ```
@@ -33,13 +40,19 @@ Controllers live in `app/Controllers/`. They keep request handling code separate
 
 The starter includes `HomeController` and `StatusController`.
 
+## Middleware and Providers
+
+Middleware lives in `app/Middleware/` and can wrap request handling. The starter includes `ExampleMiddleware`.
+
+Providers live in `app/Providers/` and are used for application bootstrapping. The starter includes `AppServiceProvider`.
+
 ## Views
 
 Views live in `resources/views/`. The default home page uses PHP view templates and a layout file.
 
 View rendering depends on the installed IntisariPHP core view features.
 
-## Config
+## Configuration
 
 Configuration files live in `config/` and return PHP arrays. The starter includes application, database, and session configuration files.
 

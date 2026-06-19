@@ -2,11 +2,11 @@
 
 IntisariPHP Starter provides a `database/` folder and database configuration through `.env` and `config/database.php`.
 
-The starter defaults to SQLite in `.env.example`, which is useful for local development and simple application prototypes.
+The starter defaults to SQLite in `.env.example`, which is useful for local development.
 
 ## Database Configuration
 
-Database settings are read from environment variables.
+Database configuration is read from `.env` values.
 
 ```php
 return [
@@ -47,18 +47,16 @@ touch database/database.sqlite
 
 On Windows PowerShell:
 
-```powershell
+```text
 New-Item database -ItemType Directory -Force
 New-Item database/database.sqlite -ItemType File
 ```
 
 Do not commit a production database file to version control. Local SQLite files may contain real application data.
 
-## Using MySQL or PostgreSQL
+## MySQL Environment Example
 
-The starter's `config/database.php` includes MySQL and PostgreSQL connection arrays. These are configuration examples, not the default connection.
-
-Example MySQL environment:
+The starter's `config/database.php` includes a MySQL connection array. This is an example configuration, not the default connection.
 
 ```env
 DB_CONNECTION=mysql
@@ -70,7 +68,9 @@ DB_PASSWORD=
 DB_CHARSET=utf8mb4
 ```
 
-Example PostgreSQL environment:
+## PostgreSQL Environment Example
+
+The starter's `config/database.php` includes a PostgreSQL connection array. This is an example configuration, not the default connection.
 
 ```env
 DB_CONNECTION=pgsql
@@ -88,13 +88,15 @@ Make sure the required PHP PDO driver is enabled for the database you choose.
 
 The starter does not define an application-level query API in its own files.
 
-Running queries depends on IntisariPHP core database support and the database services available in your installed version. Check the core documentation before using database manager, connection, or query builder APIs.
+Running queries depends on IntisariPHP database package support and the database services available in your installed version.
 
-## Schema Changes
+Do not assume an ORM or query builder API unless it exists in the installed package documentation.
 
-The starter does not include database schema change files or a schema command.
+## Migrations
 
-Schema change workflow is planned or depends on IntisariPHP core database support. If your installed version provides one, follow that package documentation.
+The starter does not include migration files or a migration command.
+
+Migrations depend on IntisariPHP database package support. If your installed version provides migration features, follow that package documentation.
 
 ## Next Steps
 

@@ -1,20 +1,25 @@
 # Introduction
 
-IntisariPHP Starter is the default project skeleton for applications built with IntisariPHP core.
+IntisariPHP Starter is the default application skeleton for projects built with IntisariPHP core.
 
-It provides the application files around IntisariPHP core: a front controller, bootstrap file, route files, configuration files, PHP views, storage directories, a command line entry point, and PHPUnit setup.
+It provides the files needed to start an application: a front controller, bootstrap file, route files, controllers, middleware, configuration files, PHP views, storage directories, a command line entry point, and PHPUnit setup.
 
-## What Problem It Solves
+## Who Should Use It
 
-IntisariPHP core contains framework behavior. A real application still needs a directory layout, entry points, route files, configuration files, and runtime directories.
+Use IntisariPHP Starter if you are:
 
-The starter solves that setup work by giving you a small project that can be installed, configured, served locally, and extended immediately.
+- A PHP developer starting a new IntisariPHP application.
+- A framework learner who wants to understand the application structure.
+- A developer building a small web application or JSON endpoint.
+- A package user who wants the core framework already wired into a project layout.
 
-## Relationship with IntisariPHP Core
+## Starter vs IntisariPHP Core
 
-The starter requires `lukman-ss/intisari` through Composer.
+IntisariPHP core provides framework behavior. IntisariPHP Starter provides the application structure around it.
 
-```json
+The starter requires `lukman-ss/intisari` through Composer:
+
+```text
 {
   "require": {
     "lukman-ss/intisari": "^1.0"
@@ -22,11 +27,7 @@ The starter requires `lukman-ss/intisari` through Composer.
 }
 ```
 
-The starter does not replace IntisariPHP core. It uses IntisariPHP core to create and run the application.
-
-## Starter vs IntisariPHP Core
-
-The starter contains application-level files:
+The starter contains project-level files:
 
 ```text
 app/
@@ -40,6 +41,16 @@ tests/
 ```
 
 IntisariPHP core is installed in `vendor/` by Composer and provides the runtime features used by the starter.
+
+## Design Goals
+
+IntisariPHP Starter is designed to be:
+
+- Simple: clear files and minimal defaults.
+- Lightweight: no large application modules included by default.
+- Composer-based: dependencies and autoloading are managed by Composer.
+- PHP 8.2+: modern PHP syntax and runtime baseline.
+- Clean: application code, configuration, routes, views, storage, and tests have separate locations.
 
 ## When to Use This Starter
 
@@ -58,13 +69,6 @@ Do not use this starter when:
 - You are maintaining an existing application with its own project structure.
 - You need features that are not present in this repository unless they are provided by installed IntisariPHP core features.
 - You want a full application template with complete application modules already implemented.
-
-## Folder Documentation Map
-
-- [Requirements](requirements.md)
-- [Installation](../installation/index.md)
-- [Composer Installation](../installation/composer.md)
-- [Running the Application](../installation/running.md)
 
 ## Next Steps
 

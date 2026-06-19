@@ -1,6 +1,6 @@
 # Running the Application
 
-The starter includes a development server command for local work.
+The starter includes a local development server command.
 
 The Composer script uses the `intisari` command line entry point:
 
@@ -14,7 +14,13 @@ php intisari serve
 composer serve
 ```
 
-Or run the console command directly:
+This starts the application at:
+
+```text
+http://127.0.0.1:8000
+```
+
+You can also run the command directly:
 
 ```bash
 php intisari serve
@@ -24,12 +30,6 @@ You can set the host and port:
 
 ```bash
 php intisari serve --host=0.0.0.0 --port=8080
-```
-
-By default, the application is available at:
-
-```text
-http://127.0.0.1:8000
 ```
 
 ## Run Tests
@@ -43,6 +43,24 @@ composer test
 This runs the PHPUnit setup included in the repository.
 
 ## Troubleshooting
+
+### PHP Version Too Old
+
+Check the installed PHP version:
+
+```bash
+php -v
+```
+
+IntisariPHP Starter requires PHP `>=8.2`.
+
+### Composer Not Found
+
+Check that Composer is installed and available in your terminal:
+
+```bash
+composer -V
+```
 
 ### Port Already in Use
 
@@ -64,15 +82,32 @@ A blank page usually means an error is hidden or the environment is misconfigure
 
 Check `.env`, confirm dependencies are installed, and run the server from the project root.
 
-### `APP_DEBUG`
-
-For local development, `APP_DEBUG=true` helps show useful error details.
+For local debugging, use:
 
 ```env
+APP_ENV=local
 APP_DEBUG=true
 ```
 
-Do not use debug mode for production deployments.
+### Missing `.env`
+
+If `.env` does not exist, copy it from the template:
+
+```bash
+cp .env.example .env
+```
+
+### Permission Issue
+
+Permission issues usually mean the current user cannot read project files or write runtime files.
+
+Check access to:
+
+```text
+storage/cache
+storage/logs
+storage/framework
+```
 
 ### Invalid `.env`
 

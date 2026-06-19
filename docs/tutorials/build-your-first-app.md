@@ -2,7 +2,7 @@
 
 This tutorial builds a simple static IntisariPHP Starter application with two pages.
 
-You will create a project, run the local server, add routes, create a controller, return simple HTML strings, add an `/about` page, and run the test command. This tutorial does not use a database.
+You will create a project, run the local server, add routes, create a controller, return simple strings, add an `/about` page, write a small test, and run the test command. This tutorial does not use a database.
 
 ## 1. Create Project
 
@@ -21,7 +21,7 @@ cp .env.example .env
 
 On Windows PowerShell:
 
-```powershell
+```text
 Copy-Item .env.example .env
 ```
 
@@ -45,11 +45,11 @@ The `composer serve` script runs:
 php intisari serve
 ```
 
-## 3. Create Route
+## 3. Add Route `/`
 
 Open `routes/web.php`.
 
-The starter already has a home route:
+Add or confirm the home route:
 
 ```php
 $app->get('/', [HomeController::class, 'index']);
@@ -72,7 +72,7 @@ final class HomeController
 {
     public function index(): string
     {
-        return '<h1>Hello Intisari</h1>';
+        return 'Hello Intisari';
     }
 }
 ```
@@ -86,11 +86,11 @@ The `index` method returns a string:
 ```php
 public function index(): string
 {
-    return '<h1>Hello Intisari</h1>';
+    return 'Hello Intisari';
 }
 ```
 
-This is the smallest useful response for a static page. View rendering can be added later using IntisariPHP core view features available in your installed version.
+This is the smallest useful response for a static page. HTML strings can also be returned, but plain strings are enough for the first application.
 
 Reload:
 
@@ -113,12 +113,12 @@ final class HomeController
 {
     public function index(): string
     {
-        return '<h1>Hello Intisari</h1>';
+        return 'Hello Intisari';
     }
 
     public function about(): string
     {
-        return '<h1>About</h1><p>This is a simple IntisariPHP Starter page.</p>';
+        return 'About Intisari';
     }
 }
 ```
@@ -127,17 +127,9 @@ Then update `routes/web.php`:
 
 ```php
 use App\Controllers\HomeController;
-use App\Controllers\StatusController;
-use Intisari\Application;
-use Lukman\Router\Router;
-
-assert($app instanceof Application);
-assert($router instanceof Router);
 
 $app->get('/', [HomeController::class, 'index']);
 $app->get('/about', [HomeController::class, 'about']);
-$app->get('/health', static fn (): string => 'OK');
-$app->get('/status', [StatusController::class, 'index']);
 ```
 
 Open:
@@ -146,7 +138,32 @@ Open:
 http://127.0.0.1:8000/about
 ```
 
-## 7. Run Tests
+## 7. Add Simple Test
+
+Create `tests/Unit/HomeControllerTest.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Unit;
+
+use App\Controllers\HomeController;
+use PHPUnit\Framework\TestCase;
+
+final class HomeControllerTest extends TestCase
+{
+    public function test_home_returns_string(): void
+    {
+        $controller = new HomeController();
+
+        $this->assertSame('Hello Intisari', $controller->index());
+    }
+}
+```
+
+## 8. Run `composer test`
 
 Run the starter test command:
 
@@ -154,7 +171,7 @@ Run the starter test command:
 composer test
 ```
 
-The starter uses PHPUnit. Existing tests may need updates if you changed default route behavior expected by the repository tests.
+The starter uses PHPUnit.
 
 ## Final Project Structure
 
@@ -163,9 +180,11 @@ my-app/
   app/
     Controllers/
       HomeController.php
-      StatusController.php
   routes/
     web.php
+  tests/
+    Unit/
+      HomeControllerTest.php
   public/
     index.php
   composer.json
@@ -203,7 +222,7 @@ composer serve
 
 ### Test Expectations Changed
 
-If existing tests assert the default home page content, update your application or test expectations intentionally.
+If existing tests assert old controller output, update the test or controller intentionally.
 
 ## Related Documentation
 

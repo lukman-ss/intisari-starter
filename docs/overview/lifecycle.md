@@ -19,7 +19,7 @@ Browser request
 
 ## `public/index.php`
 
-The front controller receives every web request handled by the PHP application.
+The front controller receives web requests handled by the PHP application.
 
 It loads Composer autoloading, imports the application from `bootstrap/app.php`, loads `routes/web.php`, and runs the application.
 

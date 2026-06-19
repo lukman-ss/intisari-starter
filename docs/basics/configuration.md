@@ -2,13 +2,23 @@
 
 Configuration files define application settings outside of controllers, routes, and views.
 
-IntisariPHP Starter stores configuration files in `config/`. Each file returns a PHP array and may read values from environment variables.
+IntisariPHP Starter stores configuration files in `config/`. Each file returns a PHP array and can read values from environment variables.
 
 The starter loads `.env` from the project root when it exists, then loads configuration from the `config/` directory during bootstrap.
 
-## App Configuration
+## The `config/` Folder
 
-The main application configuration is `config/app.php`.
+The `config/` folder contains application configuration files.
+
+Common files include:
+
+```text
+config/app.php
+config/database.php
+config/session.php
+```
+
+The main application configuration is `config/app.php`:
 
 ```php
 return [
@@ -23,9 +33,19 @@ return [
 
 It also lists application service providers and middleware configured by the starter.
 
-## Environment Variables
+## `.env` and `.env.example`
 
-The starter includes `.env.example` as the template for local environment configuration.
+The `.env` file stores environment-specific values for one machine or server.
+
+The `.env.example` file is the shared template. Copy it before running the application:
+
+```bash
+cp .env.example .env
+```
+
+Do not commit `.env` to version control.
+
+## Environment Variables
 
 | Variable | Purpose | Default in Template |
 | --- | --- | --- |
@@ -39,12 +59,6 @@ The starter includes `.env.example` as the template for local environment config
 | `DB_DATABASE` | Database name or SQLite path | `database/database.sqlite` |
 | `SESSION_DRIVER` | Session storage driver | `file` |
 | `SESSION_LIFETIME` | Session lifetime in minutes | `120` |
-
-Copy the template before running the application:
-
-```bash
-cp .env.example .env
-```
 
 ## Minimal `.env`
 
@@ -65,7 +79,7 @@ SESSION_LIFETIME=120
 
 ## Local vs Production Configuration
 
-Local configuration should favor debugging and simple setup.
+Local configuration can enable debugging:
 
 ```env
 APP_ENV=local
@@ -73,13 +87,15 @@ APP_DEBUG=true
 APP_URL=http://localhost:8000
 ```
 
-Production configuration should disable debug output and use the real application URL.
+Production configuration must disable debug output and use the real production domain:
 
 ```env
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://example.com
 ```
+
+Set `APP_URL` to the actual production domain. Do not leave it as `localhost` in production.
 
 The starter defaults to `Asia/Jakarta` for `APP_TIMEZONE` when no environment value is provided.
 
@@ -88,6 +104,7 @@ The starter defaults to `Asia/Jakarta` for `APP_TIMEZONE` when no environment va
 - Do not commit `.env` to version control.
 - Use `.env.example` as the shared template.
 - Set `APP_DEBUG=false` in production.
+- Set `APP_URL` to the correct production domain.
 - Keep production secrets out of documentation and source code.
 - Clear cached configuration after changing environment values.
 

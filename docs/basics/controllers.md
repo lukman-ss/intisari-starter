@@ -1,8 +1,10 @@
 # Controllers
 
-Controllers group request handling logic into PHP classes.
+Controllers are PHP classes that handle application actions for matched routes.
 
-In an MVC-style application, routes receive the request, controllers handle the application action, and views render HTML when a page needs presentation. IntisariPHP Starter stores controllers in `app/Controllers/` using the `App\Controllers` namespace from Composer PSR-4 autoloading.
+In IntisariPHP Starter, controllers live in `app/Controllers/` and use the `App\Controllers` namespace.
+
+Routes decide which controller method should run. The controller then returns a string, view, or supported response object.
 
 ## Creating a Controller
 
@@ -24,13 +26,13 @@ final class HomeController
 }
 ```
 
-You can also generate a controller with the starter command line:
+The file path should be:
 
-```bash
-php intisari make:controller HomeController
+```text
+app/Controllers/HomeController.php
 ```
 
-The generated file is placed in `app/Controllers/`.
+You can create this file manually or use the starter command line generator if you want the default class template.
 
 ## Connecting a Controller to a Route
 
@@ -42,7 +44,7 @@ use App\Controllers\HomeController;
 $app->get('/', [HomeController::class, 'index']);
 ```
 
-The array syntax points to the class name and method name that should handle the route.
+The route handler array contains the controller class and method name.
 
 ## Controller Naming
 
@@ -66,7 +68,7 @@ The file should be stored under:
 app/Controllers/HomeController.php
 ```
 
-## Returning a Response
+## Return Values
 
 A controller method may return a simple string:
 
@@ -96,9 +98,9 @@ Controllers should stay focused on request handling.
 
 Use controllers to:
 
-- Read route input when supported by the core.
 - Call application logic.
 - Return a string, view, or response object.
+- Keep route files small.
 
 Avoid placing unrelated setup, large data transformations, or reusable framework-style code directly inside controller methods.
 
@@ -130,7 +132,7 @@ $app->get('/', [HomeController::class, 'index']);
 
 ### Assuming a Base Controller
 
-The starter does not include a base controller class. Extend one only if your application or installed IntisariPHP core package provides it.
+The starter does not include a `BaseController` class. Do not extend one unless your application adds it or your installed IntisariPHP core package clearly provides it.
 
 ### File Not Autoloaded
 

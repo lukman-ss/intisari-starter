@@ -2,11 +2,11 @@
 
 IntisariPHP Starter is a ready-to-run application skeleton for building PHP web applications with IntisariPHP.
 
-The starter provides the project layout around IntisariPHP core, `lukman-ss/intisari`. IntisariPHP core supplies the framework behavior, while this repository provides the application entry points, routes, configuration files, views, storage directories, command line entry point, and testing setup needed to start a real project.
+IntisariPHP core, provided by `lukman-ss/intisari`, supplies the framework behavior. IntisariPHP Starter provides the application project layout: entry points, routes, controllers, views, configuration, storage directories, command line entry point, and testing setup.
 
-This guide is written for PHP developers, framework learners, and small web app builders who want a simple structure before adding application-specific code.
+Use this documentation hub to install the starter, understand the application structure, learn the basic concepts, and build small applications step by step.
 
-## Quick Commands
+## Quick Start
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
@@ -16,38 +16,32 @@ composer serve
 composer test
 ```
 
-## Documentation Map
+## Documentation Sections
 
-### Getting Started
+### Introduction
 
 - [Introduction](intro/index.md)
 - [Requirements](intro/requirements.md)
+
+### Installation
+
 - [Installation](installation/index.md)
 - [Composer Installation](installation/composer.md)
 - [Running the Application](installation/running.md)
 
-### Tutorials
-
-- [Build Your First Intisari Application](tutorials/build-your-first-app.md)
-- [Getting Started with REST APIs](tutorials/rest-api.md)
-
-### Overview
+### Application Overview
 
 - [Application Overview](overview/index.md)
 - [Application Structure](overview/application-structure.md)
-- [Application Lifecycle](overview/lifecycle.md)
+- [Request Lifecycle](overview/request-lifecycle.md)
 
 ### Basic Concepts
 
 - [Routing](basics/routing.md)
 - [Controllers](basics/controllers.md)
 - [Views](basics/views.md)
+- [Middleware](basics/middleware.md)
 - [Configuration](basics/configuration.md)
-
-### General Topics
-
-- [Error Handling and Debugging](general/error-handling.md)
-- [Security Guidelines](general/security.md)
 
 ### Database
 
@@ -55,7 +49,7 @@ composer test
 
 ### Command Line
 
-- [Command Line](cli/index.md)
+- [Command Line Usage](cli/index.md)
 
 ### Testing
 
@@ -65,10 +59,13 @@ composer test
 
 - [Deployment](deployment/index.md)
 
-## How to Read This Guide
+### Security
 
-Start with the installation pages if you are creating a new project. Read the overview pages if you want to understand how the application boots and where files belong. Use the basic concept pages when you begin editing routes, controllers, views, and configuration.
+- [Security](security/index.md)
+- [Error Handling and Debugging](general/error-handling.md)
+- [Security Guidelines](general/security.md)
 
-## Next Steps
+### Tutorials
 
-Continue with [Introduction](intro/index.md).
+- [Build Your First Intisari Application](tutorials/build-your-first-app.md)
+- [Getting Started with REST APIs](tutorials/rest-api.md)

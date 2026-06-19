@@ -2,7 +2,7 @@
 
 This tutorial creates simple JSON endpoints in an IntisariPHP Starter application.
 
-The goal is to add small API routes, return JSON responses when supported by installed IntisariPHP core or HTTP package features, and test the endpoints with `curl`.
+The goal is to add `/api/ping` and `/api/status`, return small JSON payloads, and test them with `curl`.
 
 ## API Routes
 
@@ -30,26 +30,24 @@ curl http://127.0.0.1:8000/api/ping
 
 Expected body:
 
-```json
+```text
 {"message":"pong"}
 ```
 
 ## JSON Responses
 
-The starter includes `StatusController`, which returns a JSON response object from `Lukman\Http\Response`.
+The safest minimal response is a JSON string:
 
-If your installed IntisariPHP core or HTTP package supports it, return JSON with:
+```php
+$app->get('/api/ping', static fn (): string => '{"message":"pong"}');
+```
+
+If your installed IntisariPHP core or HTTP package supports a JSON response helper, you may use it instead:
 
 ```php
 use Lukman\Http\Response;
 
 return Response::json(['message' => 'pong']);
-```
-
-If JSON helpers or response objects are not available in your installed version, a minimal fallback is returning a JSON string:
-
-```php
-$app->get('/api/ping', static fn (): string => '{"message":"pong"}');
 ```
 
 Conceptually, JSON endpoints should also send a `Content-Type: application/json` header. Use the response or header API provided by installed IntisariPHP core or HTTP package features when available.
@@ -65,16 +63,11 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use Lukman\Http\Response;
-
 final class ApiStatusController
 {
-    public function index(): Response
+    public function index(): string
     {
-        return Response::json([
-            'status' => 'ok',
-            'service' => 'intisari-starter',
-        ]);
+        return '{"status":"ok","service":"intisari-starter"}';
     }
 }
 ```
@@ -87,12 +80,17 @@ use App\Controllers\ApiStatusController;
 $app->get('/api/status', [ApiStatusController::class, 'index']);
 ```
 
-If `Response::json()` is not available in your installed HTTP package, return a JSON string until you confirm the supported response API.
+If `Response::json()` is available in your installed HTTP package, you can use it instead of the fallback string:
 
 ```php
-public function index(): string
+use Lukman\Http\Response;
+
+public function index(): Response
 {
-    return '{"status":"ok","service":"intisari-starter"}';
+    return Response::json([
+        'status' => 'ok',
+        'service' => 'intisari-starter',
+    ]);
 }
 ```
 
@@ -104,9 +102,9 @@ curl http://127.0.0.1:8000/api/status
 
 ## HTTP Status Codes
 
-HTTP status code support depends on the response API available from installed IntisariPHP core or HTTP package features.
+HTTP status codes describe the result of an HTTP request.
 
-Use a `200 OK` response for successful read-only endpoints such as `/api/ping` and `/api/status`. For other status codes, check the installed package documentation before assuming a method name or constructor signature.
+Use `200 OK` for successful read-only endpoints such as `/api/ping` and `/api/status`. Custom status code support depends on the response API available from installed IntisariPHP core or HTTP package features.
 
 ## Organizing API Controllers
 
@@ -120,7 +118,7 @@ app/
     ApiStatusController.php
 ```
 
-If the application grows, you may choose a clearer naming convention such as `UserApiController` or a sub-namespace, but only add structure when it helps the project.
+If the application grows, use clear controller names such as `ApiStatusController`. Add more structure only when it helps the project.
 
 ## Testing with `curl`
 

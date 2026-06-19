@@ -36,7 +36,7 @@ Copy the environment file template:
 cp .env.example .env
 ```
 
-Open `.env` and adjust the values to match your local setup. The default starter variables are:
+Open `.env` and adjust the values for your local setup. The default variables are:
 
 | Variable | Default | Description |
 | --- | --- | --- |

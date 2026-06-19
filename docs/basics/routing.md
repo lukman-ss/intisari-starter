@@ -2,15 +2,15 @@
 
 Routing connects an incoming HTTP request to application code.
 
-In IntisariPHP Starter, web routes are defined in `routes/web.php`. The file is loaded from `public/index.php` before the application runs.
+In IntisariPHP Starter, web routes are defined in `routes/web.php`. This file is loaded from `public/index.php` before the application runs.
 
 ```php
 $app->loadRoutes($app->routesPath('web.php'));
 ```
 
-Routes are registered against the application/router object using the starter's `$app` route methods.
+Routes are registered through the starter's `$app` route methods.
 
-## Basic Routes
+## `routes/web.php`
 
 The default `routes/web.php` file contains these routes:
 
@@ -22,30 +22,23 @@ $app->get('/status', [StatusController::class, 'index']);
 
 Each route has an HTTP method, a URI path, and a handler.
 
-## HTTP Methods
+## Closure Route
 
-Common HTTP methods are:
-
-- `GET` for reading pages or data.
-- `POST` for creating or submitting data.
-- `PUT` or `PATCH` for updating existing data.
-- `DELETE` for deleting data.
-
-The starter uses `GET` routes by default. Other methods depend on the route methods exposed by installed IntisariPHP core routing features.
-
-## Closure Routes
-
-Use a closure route for very small responses.
+A closure route is useful for a small response.
 
 ```php
 $app->get('/health', static fn (): string => 'OK');
 ```
 
-Closure routes are useful for simple status endpoints or temporary local checks.
+Open it in the browser:
 
-## Controller Routes
+```text
+http://127.0.0.1:8000/health
+```
 
-Use a controller route when the request needs application logic.
+## Controller Route
+
+A controller route points to a controller class and method.
 
 ```php
 use App\Controllers\HomeController;
@@ -53,9 +46,13 @@ use App\Controllers\HomeController;
 $app->get('/', [HomeController::class, 'index']);
 ```
 
-The controller class should exist under the `App\Controllers` namespace.
+The controller class should use the `App\Controllers` namespace.
 
 ```php
+<?php
+
+declare(strict_types=1);
+
 namespace App\Controllers;
 
 final class HomeController
@@ -67,11 +64,36 @@ final class HomeController
 }
 ```
 
-## Route Parameters
+Open it in the browser:
 
-Route parameter support should be verified against installed IntisariPHP core routing features before use.
+```text
+http://127.0.0.1:8000/
+```
 
-If your installed version supports parameters, follow the syntax documented by IntisariPHP core. Do not assume Laravel-style parameter syntax unless the router confirms it.
+## Common HTTP Methods
+
+Common HTTP methods are:
+
+- `GET` for reading pages or data.
+- `POST` for creating or submitting data.
+- `PUT` or `PATCH` for updating existing data.
+- `DELETE` for deleting data.
+
+The starter uses `GET` routes by default. Other methods depend on the route methods exposed by installed IntisariPHP core routing features.
+
+## Reading a Route from the Browser
+
+When the local server is running, the browser path maps to the route path.
+
+```text
+http://127.0.0.1:8000/status
+```
+
+Matches:
+
+```php
+$app->get('/status', [StatusController::class, 'index']);
+```
 
 ## Inspect Routes
 
@@ -83,13 +105,11 @@ php intisari route:list
 
 ## Troubleshooting
 
-### Route Not Found
+### Wrong Path
 
-Confirm the route exists in `routes/web.php` and that the requested path matches exactly.
+The browser path must match the route path.
 
-```php
-$app->get('/status', [StatusController::class, 'index']);
-```
+`/status` and `/stats` are different paths.
 
 ### Wrong Controller Namespace
 
@@ -101,17 +121,21 @@ use App\Controllers\StatusController;
 
 The class file should be in `app/Controllers/`.
 
-### Server Not Restarted
+### Route Not Registered
 
-If you are using the development server and changes are not visible, stop and start it again.
+Confirm the route exists in `routes/web.php`.
+
+```php
+$app->get('/status', [StatusController::class, 'index']);
+```
+
+### Server Not Running
+
+Start the development server before opening the application in a browser.
 
 ```bash
 composer serve
 ```
-
-### Typo in Path
-
-`/status` and `/stats` are different paths. Check the browser URL, the route definition, and any links that point to the route.
 
 ## Next Steps
 

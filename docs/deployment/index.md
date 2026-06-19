@@ -20,6 +20,8 @@ Create the production `.env` file manually on the server.
 
 Do not copy local secrets blindly, and do not commit `.env` to version control.
 
+The `.env` file must not be publicly accessible from the web server.
+
 Example production values:
 
 ```env
@@ -86,7 +88,7 @@ storage/framework
 
 ## Example Nginx Server Block
 
-This is a simple PHP-FPM example. Adjust paths, PHP-FPM socket/version, server name, TLS settings, and security rules for your server environment.
+This PHP-FPM example is a starting point. Adjust paths, PHP-FPM socket/version, server name, TLS settings, and security rules for your server.
 
 ```nginx
 server {
@@ -117,12 +119,14 @@ server {
 
 - Point the document root to `public/`.
 - Do not expose the project root to the public web.
+- Ensure `.env` is not public.
 - Create `.env` manually on the production server.
 - Set `APP_DEBUG=false`.
 - Keep `.env` out of version control.
 - Install dependencies with `--no-dev`.
+- Keep dependencies updated and review changes before deployment.
 - Ensure `storage/` is writable by the runtime user.
-- Restrict write permissions to required runtime directories.
+- Use safe file permissions and restrict write access to required runtime directories.
 - Use HTTPS in production when available.
 
 ## Next Steps

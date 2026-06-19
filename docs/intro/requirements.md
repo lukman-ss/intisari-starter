@@ -1,6 +1,6 @@
 # Requirements
 
-IntisariPHP Starter requires PHP, Composer, and basic terminal access.
+IntisariPHP Starter requires PHP 8.2 or newer, Composer, and basic terminal usage.
 
 The project declares PHP `>=8.2` in `composer.json`. Composer installs IntisariPHP core, development dependencies, and autoload configuration.
 
@@ -9,27 +9,16 @@ The project declares PHP `>=8.2` in `composer.json`. Composer installs IntisariP
 - PHP 8.2 or newer
 - Composer
 - Basic terminal or command prompt usage
-- A local web server for development
 
-## Recommended PHP Extensions
+## Common PHP Extensions
 
-The exact extension requirements depend on installed IntisariPHP core features and your application code. For a typical local PHP setup, these extensions are recommended:
+Exact extension requirements can depend on installed IntisariPHP core features and your application code. For a typical local setup, these PHP extensions are commonly expected:
 
 - `mbstring`
 - `openssl`
 - `pdo`
 - `tokenizer`
 - `json`
-
-## Local Development Server
-
-The starter includes a command line command that runs PHP's built-in development server with `public/` as the document root.
-
-```bash
-composer serve
-```
-
-This is enough for local development. Production deployment should use a real web server configured to serve the `public/` directory.
 
 ## Check Your Environment
 
@@ -39,7 +28,7 @@ composer -V
 php -m
 ```
 
-Use `php -m` to confirm that recommended extensions are enabled.
+Use `php -m` to confirm that common extensions are enabled.
 
 ## Next Steps
 
