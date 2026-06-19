@@ -46,6 +46,8 @@ Key folders: `app/`, `config/`, `public/`, `routes/`, `storage/`, `tests/`.
 
 Command line details are documented in [Command Line Usage](docs/cli/index.md).
 
+Available commands include `php intisari serve`, `php intisari route:list`, `php intisari config:cache`, `php intisari config:clear`, `php intisari make:controller UserController`, `php intisari make:middleware AuthMiddleware`, `php intisari make:provider PaymentServiceProvider`, `php intisari make:command SendEmailCommand`, `php intisari about`, `php intisari env`, and `php intisari test`.
+
 ## Core Package
 
 This starter project is powered by [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari).
