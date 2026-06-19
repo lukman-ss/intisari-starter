@@ -40,10 +40,47 @@ You can also open the command line entry point with:
 composer console
 ```
 
+Direct command:
+
+```bash
+php intisari serve
+```
+
 ## Running Tests
 
 ```bash
 composer test
+```
+
+## Project Structure
+
+Key application folders:
+
+```text
+app/
+config/
+public/
+routes/
+storage/
+tests/
+```
+
+## Command Line
+
+Common `intisari` commands:
+
+```bash
+php intisari about
+php intisari env
+php intisari serve
+php intisari route:list
+php intisari config:cache
+php intisari config:clear
+php intisari make:controller UserController
+php intisari make:middleware AuthMiddleware
+php intisari make:provider PaymentServiceProvider
+php intisari make:command SendEmailCommand
+php intisari test
 ```
 
 ## Documentation
