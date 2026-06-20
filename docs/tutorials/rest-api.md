@@ -1,56 +1,51 @@
 # REST API Basics
 
-This tutorial builds simple JSON API endpoints in an IntisariPHP application and tests them with `curl`. No authentication, no validation, no middleware — just plain JSON responses.
+This tutorial walks you through building REST API endpoints in an IntisariPHP application, returning JSON responses, and testing them using `curl`.
 
-## What You Will Build
+No authentication, validation layers, or resource controllers are used here — this guide focuses purely on routing, response generation, and core JSON capabilities.
 
-- A `GET /api/ping` endpoint that returns `{"message":"pong"}`
-- A `GET /api/status` endpoint that returns application status
-- Tests using `curl` to verify responses
+---
 
-**Estimated time:** 10 minutes
+## API Route Concept
 
-## 1. Add a Ping Endpoint
+In IntisariPHP, API routes are defined alongside web routes in [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php). The framework HTTP kernel processes incoming requests and dispatches them to closures or controller actions. 
 
-Open `routes/web.php` and add a closure route:
+By convention, all API endpoints are prefixed with `/api/` (e.g., `/api/ping`, `/api/status`) to distinguish them from standard web pages.
+
+---
+
+## Add `/api/ping`
+
+Let's register a simple route closure that returns a hardcoded JSON response. Open [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php) and add the following:
 
 ```php
-$app->get('/api/ping', static fn (): string => '{"message":"pong"}');
+$app->get('/api/ping', static fn (): string => json_encode(['message' => 'pong'], JSON_THROW_ON_ERROR));
 ```
 
-This route returns a JSON string directly. No controller needed for simple responses.
+This endpoint returns a raw JSON string. It uses PHP's native `json_encode()` with `JSON_THROW_ON_ERROR` for safety.
 
-### Test with curl
+### Test with `curl`
 
-Start the server and test:
-
+Start the development server:
 ```bash
 composer serve
 ```
 
-In another terminal:
-
+Run a `curl` request in another terminal window to verify:
 ```bash
 curl http://127.0.0.1:8000/api/ping
 ```
 
-Expected response:
-
+Expected output:
 ```json
 {"message":"pong"}
 ```
 
-### Test with Browser
+---
 
-Open [http://127.0.0.1:8000/api/ping](http://127.0.0.1:8000/api/ping) in your browser. You should see the JSON string.
+## Add `/api/status`
 
-## 2. Add a Status Controller
-
-For more complex endpoints, create a dedicated controller.
-
-### Create the Controller
-
-Create `app/Controllers/ApiStatusController.php`:
+For more complex JSON endpoints, map the route to a controller method. Let's create `app/Controllers/ApiStatusController.php`:
 
 ```php
 <?php
@@ -59,11 +54,13 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use Lukman\Http\Response;
+
 final class ApiStatusController
 {
-    public function index(): string
+    public function index(): Response
     {
-        return json_encode([
+        return Response::json([
             'status' => 'ok',
             'service' => 'intisari-starter',
             'php_version' => PHP_VERSION,
@@ -72,11 +69,7 @@ final class ApiStatusController
 }
 ```
 
-This controller returns a JSON-encoded string with application information.
-
-### Register the Route
-
-Add the route in `routes/web.php`:
+Now register the route in [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php):
 
 ```php
 use App\Controllers\ApiStatusController;
@@ -84,319 +77,138 @@ use App\Controllers\ApiStatusController;
 $app->get('/api/status', [ApiStatusController::class, 'index']);
 ```
 
-### Test with curl
+---
 
-```bash
-curl http://127.0.0.1:8000/api/status
-```
+## Return JSON Using `Response::json()`
 
-Expected response:
-
-```json
-{"status":"ok","service":"intisari-starter","php_version":"8.2.x"}
-```
-
-## JSON Response Helpers
-
-The examples above use plain JSON strings. If the IntisariPHP core HTTP package provides a `Response::json()` helper, you can use it instead:
+The `Lukman\Http\Response` class includes a verified `json()` factory helper:
 
 ```php
-use Lukman\Http\Response;
-
-public function index(): Response
-{
-    return Response::json([
-        'status' => 'ok',
-        'service' => 'intisari-starter',
-    ]);
-}
+return Response::json($data);
 ```
 
-**Advantages of `Response::json()`:**
+Using `Response::json()` is the preferred method for building APIs because it:
+1. Automatically sets the `Content-Type: application/json` HTTP header.
+2. Formats and encodes the PHP array/object into JSON.
+3. Returns a structured `Lukman\Http\Response` instance that integrates with the kernel.
 
-- Automatically sets `Content-Type: application/json` header
-- Handles JSON encoding internally
-- May support pretty printing and encoding options
-
-**If `Response::json()` is not available**, use `json_encode()` with a manual header:
+### Fallback/Alternative Method
+If you do not return a `Response` object and return a string instead, you must manually set headers if you want the client to receive the correct Content-Type:
 
 ```php
 public function index(): string
 {
     header('Content-Type: application/json');
-    return json_encode(['status' => 'ok']);
+    return json_encode(['status' => 'ok'], JSON_THROW_ON_ERROR);
 }
 ```
 
-**Note:** Setting headers directly may not work if output has already started. Using a response object from the core HTTP package is preferred.
+> [!NOTE]
+> Modifying PHP headers directly using `header()` can fail if any output has already started. Returning a `Response` object from your controller is much safer.
 
-## HTTP Status Codes
+---
 
-HTTP status codes tell the client what happened with their request.
+## `curl` Examples
 
-### Common Status Codes for APIs
+You can interact with and debug your endpoints using the command line:
 
-| Code | Meaning | When to Use |
-|------|---------|-------------|
-| `200 OK` | Success | Successful GET or PUT request |
-| `201 Created` | Resource created | Successful POST that creates a resource |
-| `204 No Content` | Success, no body | Successful DELETE |
-| `400 Bad Request` | Invalid input | Validation failed or malformed request |
-| `401 Unauthorized` | Not authenticated | Missing or invalid credentials |
-| `403 Forbidden` | Not authorized | Authenticated but lacks permission |
-| `404 Not Found` | Resource not found | Requested resource does not exist |
-| `500 Internal Server Error` | Server error | Unexpected error in your code |
-
-### Setting Status Codes
-
-If the IntisariPHP core HTTP package supports custom status codes:
-
-```php
-use Lukman\Http\Response;
-
-public function show(): Response
-{
-    $user = $this->findUser($id);
-    
-    if ($user === null) {
-        return new Response('{"error":"User not found"}', 404);
-    }
-    
-    return Response::json($user);
-}
-```
-
-If custom status codes are not available, the response defaults to `200 OK`. You can still include error information in the JSON body:
-
-```php
-public function show(): string
-{
-    $user = $this->findUser($id);
-    
-    if ($user === null) {
-        return json_encode([
-            'error' => 'User not found',
-            'code' => 404,
-        ]);
-    }
-    
-    return json_encode($user);
-}
-```
-
-## Debugging with curl
-
-### View Response Headers
-
-Include headers in the output with `-i`:
-
+### 1. View Response Headers
+Use the `-i` flag to inspect response headers (to verify that the `Content-Type` is set to `application/json`):
 ```bash
 curl -i http://127.0.0.1:8000/api/status
 ```
 
-Example output:
-
-```
+Example header output:
+```text
 HTTP/1.1 200 OK
 Host: 127.0.0.1:8000
-Date: Fri, 19 Jun 2026 10:00:00 GMT
+Content-Type: application/json
 Connection: close
-Content-Type: text/html; charset=UTF-8
 
 {"status":"ok","service":"intisari-starter","php_version":"8.2.x"}
 ```
 
-### View Only Headers
-
-Use `-I` (uppercase i) to see headers without the body:
-
+### 2. View Only Response Headers
+Use `-I` to print only the headers (suppressing the JSON body):
 ```bash
 curl -I http://127.0.0.1:8000/api/status
 ```
 
-### Pretty-Print JSON
-
-Use `jq` (install separately) to format JSON output:
-
+### 3. Pretty-Print JSON Output
+Pipe the JSON output to Python's built-in tool to format it nicely in the terminal:
 ```bash
-curl http://127.0.0.1:8000/api/status | jq
+curl -s http://127.0.0.1:8000/api/status | python -m json.tool
 ```
 
-Or use Python's built-in JSON formatter:
+---
 
-```bash
-curl http://127.0.0.1:8000/api/status | python -m json.tool
+## HTTP Status Code Basics
+
+HTTP status codes communicate the result of request processing to clients.
+
+Common API status codes:
+* **`200 OK`**: The request succeeded. Default for standard GET/PUT operations.
+* **`201 Created`**: The resource was created. Typically returned after successful POST requests.
+* **`400 Bad Request`**: The client sent invalid data or a malformed request.
+* **`404 Not Found`**: The requested URL path or database resource does not exist.
+* **`500 Internal Server Error`**: An unhandled exception occurred on the server.
+
+You can set custom status codes on the `Response` object:
+```php
+use Lukman\Http\Response;
+
+return new Response(json_encode(['error' => 'Not Found']), 404, [
+    'Content-Type' => 'application/json'
+]);
 ```
 
-### Send a POST Request
-
-Test POST endpoints with `-d`:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/users \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Alice","email":"alice@example.com"}'
-```
+---
 
 ## Organizing API Controllers
 
-### Small Projects
-
-For small projects, keep all controllers in `app/Controllers/`:
-
+### Standard Projects
+For smaller projects, keep all controllers under `app/Controllers/` using an `Api` prefix to differentiate them from web views:
 ```text
 app/Controllers/
-  HomeController.php          ← Web controller
-  ApiStatusController.php     ← API controller
-  ApiUserController.php       ← API controller
+  ├── HomeController.php
+  ├── ApiStatusController.php
+  └── ApiUserController.php
 ```
 
-Use a naming convention (`Api` prefix) to distinguish API controllers.
-
-### Larger Projects
-
-For larger projects, use a subdirectory:
-
+### Subdirectories
+For larger applications, group them inside a nested folder (e.g. `app/Controllers/Api/`):
 ```text
 app/Controllers/
-  HomeController.php          ← Web controller
-  AboutController.php         ← Web controller
-  Api/
-    StatusController.php      ← API controller
-    UserController.php        ← API controller
+  ├── HomeController.php
+  └── Api/
+        ├── StatusController.php
+        └── UserController.php
 ```
-
-Update the namespace:
-
+Ensure the namespace matches the directory structure:
 ```php
-namespace App\Controllers\Api;
-
-final class StatusController
-{
-    public function index(): string
-    {
-        return json_encode(['status' => 'ok']);
-    }
-}
-```
-
-Update the route:
-
-```php
-use App\Controllers\Api\StatusController;
-
-$app->get('/api/status', [StatusController::class, 'index']);
-```
-
-### Route Prefixing
-
-Group API routes under `/api/` for clarity:
-
-```php
-$app->get('/api/ping', static fn (): string => '{"message":"pong"}');
-$app->get('/api/status', [ApiStatusController::class, 'index']);
-$app->get('/api/users', [ApiUserController::class, 'index']);
-$app->get('/api/users/{id}', [ApiUserController::class, 'show']);
-```
-
-If the IntisariPHP core router supports route groups, you can use a prefix:
-
-```php
-$app->group(['prefix' => '/api'], function ($app) {
-    $app->get('/ping', static fn (): string => '{"message":"pong"}');
-    $app->get('/status', [ApiStatusController::class, 'index']);
-    $app->get('/users', [ApiUserController::class, 'index']);
-});
-```
-
-## Writing API Tests
-
-Test your API controllers with PHPUnit:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-namespace Tests\Unit;
-
-use App\Controllers\ApiStatusController;
-use PHPUnit\Framework\TestCase;
-
-final class ApiStatusControllerTest extends TestCase
-{
-    public function test_status_returns_json(): void
-    {
-        $controller = new ApiStatusController();
-        $response = $controller->index();
-        
-        $data = json_decode($response, true);
-        
-        $this->assertIsArray($data);
-        $this->assertEquals('ok', $data['status']);
-        $this->assertEquals('intisari-starter', $data['service']);
-    }
-}
-```
-
-Save as `tests/Unit/ApiStatusControllerTest.php` and run:
-
-```bash
-composer test
-```
-
-## Common Mistakes
-
-### Forgetting json_encode
-
-Returning an array directly may not work in all cases:
-
-```php
-// May not work — depends on router support
-public function index(): array
-{
-    return ['status' => 'ok'];
-}
-
-// Always works — explicit JSON string
-public function index(): string
-{
-    return json_encode(['status' => 'ok']);
-}
-```
-
-### Missing Content-Type Header
-
-Without the `Content-Type: application/json` header, clients may not parse the response as JSON. Use `Response::json()` if available, or set the header manually.
-
-### Wrong Namespace for Api Subdirectory
-
-If you use `app/Controllers/Api/`, update the namespace:
-
-```php
-// WRONG
-namespace App\Controllers;
-
-// CORRECT
 namespace App\Controllers\Api;
 ```
 
-### Route Path Mismatch
+---
 
-Ensure the route path matches what clients expect:
+## Limitations
 
-```php
-// /api/users ✓
-// /api/user ✗ (singular)
-// /api/getUsers ✗ (not RESTful)
-$app->get('/api/users', [ApiUserController::class, 'index']);
-```
+Be aware of the following architectural constraints when designing APIs with the default starter kit:
+* **No Validation Middleware**: Input validation must be handled manually inside the controller (e.g., using `filter_var()` or the core validator factory).
+* **No Authentication Layer**: Out of the box, there is no session token auth or OAuth token parsing. Token verification must be manually integrated.
+* **No Automated Content Negotiation**: The framework does not automatically negotiate media types (e.g. XML/JSON). You must explicitly return a JSON response object.
+
+---
 
 ## Next Steps
 
-You now have working JSON API endpoints. Continue learning:
+Now that you know how to build API endpoints:
+- Check out the [Security Documentation](../security/index.md) to learn how to keep credentials secure.
+- Learn about [Testing](../testing/index.md) to write automated checks for your API controllers.
+- Proceed to [Deployment](../deployment/index.md) to go live.
 
-- [Routing](../basics/routing.md) — learn about HTTP methods, parameters, and route organization
-- [Controllers](../basics/controllers.md) — learn about controller best practices
-- [Testing](../testing/index.md) — write more comprehensive tests
-- [Deployment](../deployment/index.md) — deploy your API to production
+---
+
+## Next
+
+Return to the [Documentation Index](../index.md).

@@ -2,15 +2,17 @@
 
 IntisariPHP Starter is installed via Composer's `create-project` command. The entire process takes less than five minutes.
 
-## Installation Overview
+## Installation Flow
 
-| Step | Command | Description |
-|------|---------|-------------|
-| 1. Create project | `composer create-project lukman-ss/intisari-starter my-app` | Downloads the starter and installs dependencies |
-| 2. Enter directory | `cd my-app` | Navigate into your new project |
-| 3. Copy env file | `cp .env.example .env` | Create your local environment configuration |
-| 4. Start server | `composer serve` | Launch the development server |
-| 5. Run tests | `composer test` | Verify the installation |
+```bash
+composer create-project lukman-ss/intisari-starter my-app
+cd my-app
+cp .env.example .env
+composer serve
+composer test
+```
+
+This sequence creates the project, enters its directory, creates the local environment file, starts the development server, and verifies the installation with PHPUnit.
 
 ## What Gets Installed
 

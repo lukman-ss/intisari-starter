@@ -1,14 +1,13 @@
 # Security
 
-Security is essential for any web application. This guide covers baseline security practices that every IntisariPHP application should follow.
+Security is essential for any web application. This guide covers baseline security practices that every IntisariPHP application must follow to remain secure in production.
 
 ## Environment Files
 
 The `.env` file contains sensitive configuration values that must never be exposed publicly.
 
-### Never Commit .env to Version Control
-
-Add `.env` to your `.gitignore` file immediately:
+### Never Commit `.env` to Version Control
+Add `.env` to your [**.gitignore**](file:///d:/PHP%20PACKAGIST/intisari-starter/.gitignore) file immediately:
 
 ```gitignore
 .env
@@ -16,9 +15,8 @@ Add `.env` to your `.gitignore` file immediately:
 
 The `.env` file contains database passwords, API keys, and other secrets. Committing it to version control exposes these values to anyone with repository access.
 
-### Use .env.example as a Template
-
-Commit `.env.example` with safe default values. This tells other developers which environment variables are available:
+### Use `.env.example` as a Template
+Commit [**.env.example**](file:///d:/PHP%20PACKAGIST/intisari-starter/.env.example) with safe default values. This tells other developers which environment variables are available:
 
 ```env
 APP_NAME="Intisari App"
@@ -29,46 +27,41 @@ DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-### Create .env Manually for Each Environment
-
-Every environment (local, staging, production) should have its own `.env` file created manually. Never copy a local `.env` to a production server.
+### Create `.env` Manually for Each Environment
+Every environment (local, staging, production) must have its own `.env` file created manually. Never copy a local `.env` to a production server.
 
 ### Never Store Secrets in Repository Files
-
-Do not hardcode secrets in PHP files, configuration files, or any tracked file:
+Do not hardcode secrets in PHP files, configuration files, or any tracked files:
 
 ```php
-// WRONG — secret in source code
+// WRONG — Secret in source code
 $password = 'my_database_password';
 $apiKey = 'sk_live_abc123';
 
-// CORRECT — secret in .env
+// CORRECT — Secret in environment variable
 $password = $_ENV['DB_PASSWORD'] ?? '';
 $apiKey = $_ENV['API_KEY'] ?? '';
 ```
 
+---
+
 ## Debug Mode
 
-Debug mode is one of the most dangerous settings in a web application.
+Debug mode is a critical setting that must be tightly controlled.
 
 ### Enable Only in Local Development
-
 ```env
 APP_ENV=local
 APP_DEBUG=true
 ```
-
 During development, debug mode shows detailed error messages, stack traces, and environment variables. This helps you find and fix bugs quickly.
 
 ### Disable in Production
-
 ```env
 APP_ENV=production
 APP_DEBUG=false
 ```
-
 **This is the most critical security setting.** Debug mode in production exposes:
-
 - Full file paths on the server
 - Stack traces revealing application structure
 - Environment variables (including database passwords)
@@ -76,70 +69,69 @@ APP_DEBUG=false
 - Implementation details that aid attackers
 
 ### Verify Before Deployment
-
 Always verify debug mode is disabled before deploying:
-
 ```bash
 grep APP_DEBUG .env
 # Must show: APP_DEBUG=false
 ```
 
+---
+
 ## Public Directory
 
 The web server document root controls which files are accessible via HTTP.
 
-### Document Root Must Be public/
-
+### Document Root Must Be `public/`
 ```text
 /path/to/app/public    ← CORRECT
 /path/to/app           ← WRONG — critical security risk
 ```
 
 ### Why This Matters
-
 If the document root points to the project root, these files become web-accessible:
-
 - `.env` — contains database passwords and secrets
 - `config/` — reveals application configuration
 - `storage/logs/` — contains error details and potentially user data
 - `composer.json` — reveals dependency versions (aids targeted attacks)
 - `vendor/` — contains all installed packages
-- `tests/` — reveals testing patterns and possibly business logic
+- `tests/` — reveals testing patterns and business logic
 
 ### Verify Document Root
-
-Check your web server configuration:
+Check your web server configuration to verify it points to `public/`:
 
 ```nginx
-# Nginx
+# Nginx Configuration
 root /var/www/my-app/public;    # Correct
 root /var/www/my-app;           # WRONG
 ```
 
-```apache
-# Apache
+```text
+# Apache Configuration
 DocumentRoot /var/www/my-app/public    # Correct
 DocumentRoot /var/www/my-app           # WRONG
 ```
 
-### Block Hidden Files
+---
 
-Configure your web server to deny access to hidden files (`.env`, `.git`, `.htaccess`):
+## Hidden Files
+
+Ensure that your web server blocks access to hidden files (`.env`, `.git`, `.htaccess`):
 
 ```nginx
+# Nginx block rules
 location ~ /\.(?!well-known).* {
     deny all;
 }
 ```
+
+---
 
 ## Input Validation
 
 All user input must be validated before use. Unvalidated input is the root cause of most security vulnerabilities.
 
 ### Validate Everything
-
 Validate all sources of user input:
-
 - Query string parameters (`$_GET`)
 - Form data (`$_POST`)
 - JSON request bodies
@@ -148,7 +140,6 @@ Validate all sources of user input:
 - Cookies
 
 ### Use Type Checking and Filtering
-
 ```php
 // Validate integer
 $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
@@ -163,11 +154,10 @@ if ($email === false || $email === null) {
 }
 
 // Sanitize string
-$name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
+$name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_SPECIAL_CHARS);
 ```
 
 ### Validate Against Expected Values
-
 ```php
 $allowedSortFields = ['name', 'email', 'created_at'];
 $sortField = $_GET['sort'] ?? 'name';
@@ -178,56 +168,55 @@ if (!in_array($sortField, $allowedSortFields, true)) {
 ```
 
 ### Validation Package
+The IntisariPHP core provides a validator factory. You can run validations inside your controllers like this:
+```php
+$validatedData = $app->validate($request->all(), [
+    'email' => 'required|email',
+    'password' => 'required|min:8',
+]);
+```
 
-The IntisariPHP core may provide a validation package with additional validation rules and helpers. Check your installed packages for available validation tools.
+---
 
 ## Output Escaping
 
 All dynamic output must be escaped to prevent Cross-Site Scripting (XSS) attacks.
 
-### Escape in Views
-
-Every value that comes from user input, a database, or an external source must be escaped before rendering:
+### Raw vs Escaped Output Examples
 
 ```php
-<h1><?= htmlspecialchars($title ?? 'Untitled', ENT_QUOTES, 'UTF-8') ?></h1>
-<p><?= htmlspecialchars($description ?? '', ENT_QUOTES, 'UTF-8') ?></p>
+// WRONG: Vulnerable to XSS injection
+<p>Welcome, <?= $username ?></p>
+<input type="text" name="email" value="<?= $email ?>">
+
+// CORRECT: Escaped using htmlspecialchars()
+<p>Welcome, <?= htmlspecialchars($username, ENT_QUOTES, 'UTF-8') ?></p>
+<input type="text" name="email" value="<?= htmlspecialchars($email, ENT_QUOTES, 'UTF-8') ?>">
 ```
 
-### Using the $e() Helper
-
-If the `$e()` helper is available from IntisariPHP core:
-
-```php
-<h1><?= $e($title ?? 'Untitled') ?></h1>
-<p><?= $e($description ?? '') ?></p>
-```
-
-### Never Output Raw User Input
+### Using the `$e()` Closure Helper
+Within the starter's template files (which are evaluated by `Lukman\View\PhpEngine`), a local `$e()` closure is automatically injected as a shortcut to escape values:
 
 ```php
-<!-- WRONG — XSS vulnerability -->
-<p>Hello, <?= $_GET['name'] ?></p>
-
-<!-- CORRECT — escaped output -->
-<p>Hello, <?= htmlspecialchars($_GET['name'] ?? '', ENT_QUOTES, 'UTF-8') ?></p>
+// CORRECT: Escaped using the local view $e() helper
+<p>Welcome, <?= $e($username) ?></p>
+<input type="text" name="email" value="<?= $e($email) ?>">
 ```
 
 ### Escape Context Matters
+Different contexts require different escaping strategies:
+* **HTML Body**: Use `htmlspecialchars($value, ENT_QUOTES, 'UTF-8')` or the local template `$e($value)` helper.
+* **HTML Attributes**: Use `htmlspecialchars($value, ENT_QUOTES, 'UTF-8')` to ensure double and single quotes are escaped.
+* **JavaScript**: Use `json_encode($value)` to safely embed variables.
+* **URLs**: Use `urlencode($value)` for query string parameters.
 
-Different contexts require different escaping:
-
-- **HTML body** — use `htmlspecialchars()` or `$e()`
-- **HTML attributes** — use `htmlspecialchars()` with `ENT_QUOTES`
-- **JavaScript** — use `json_encode()` for safe embedding
-- **URLs** — use `urlencode()` for query parameters
+---
 
 ## Database Credentials
 
-Database credentials are among the most sensitive values in your application.
+Database credentials are highly sensitive.
 
-### Store in .env, Not Source Code
-
+### Store in `.env`, Not Source Code
 ```env
 DB_CONNECTION=mysql
 DB_DATABASE=your_database
@@ -235,90 +224,49 @@ DB_USERNAME=app_user
 DB_PASSWORD=strong_secure_password
 ```
 
-Read credentials from environment in config files:
-
+Read credentials from the environment in [config/database.php](file:///d:/PHP%20PACKAGIST/intisari-starter/config/database.php):
 ```php
-// config/database.php
 'username' => $env('DB_USERNAME', 'root'),
 'password' => $env('DB_PASSWORD', ''),
 ```
 
 ### Use Different Credentials Per Environment
+Each environment must have its own database user with minimal required privileges.
+* **Local**: Can use `root` with full access.
+* **Production**: A dedicated database user with access limited only to the application database.
+* **Testing**: A separate testing database (e.g. SQLite in-memory or a dedicated SQLite file) to isolate testing operations.
 
-Each environment should have its own database user with minimal required privileges:
-
-- **Local** — can use `root` with full access
-- **Production** — dedicated user with access only to the application database
-- **Testing** — separate database or user to avoid affecting production data
-
-### Use Strong Passwords
-
-Generate strong database passwords (20+ characters, mixed case, numbers, symbols):
-
-```bash
-# Generate a random password
-openssl rand -base64 32
-```
-
-### Restrict Database User Privileges
-
-The production database user should only have access to the application database:
-
-```sql
--- MySQL example
-CREATE USER 'app_user'@'localhost' IDENTIFIED BY 'strong_password';
-GRANT SELECT, INSERT, UPDATE, DELETE ON your_database.* TO 'app_user'@'localhost';
-FLUSH PRIVILEGES;
-```
+---
 
 ## Dependency Updates
 
 Outdated dependencies may contain known security vulnerabilities.
 
 ### Check for Outdated Packages
-
 ```bash
 composer outdated
 ```
 
-### Review Before Updating
-
-Read the changelog for breaking changes before updating in production:
-
+### Monitor and Apply Security Updates
+Regularly audit your dependencies for security vulnerabilities:
 ```bash
-composer update --dry-run
+composer audit
 ```
 
-### Apply Security Updates Promptly
-
-Monitor your dependencies for security advisories:
-
-- [PHP Security Advisories](https://github.com/FriendsOfPHP/security-advisories)
-- GitHub security alerts on your repository
-
-### Update and Test
-
+### Run Tests After Updating
+Always run your PHPUnit tests after updates to verify no regression:
 ```bash
 composer update
 composer test
 ```
 
-Run your test suite after every update to catch breaking changes.
-
-### Lock Dependencies in Production
-
-Use `composer.lock` to ensure consistent dependency versions:
-
-```bash
-composer install  # Uses composer.lock, not composer.json
-```
+---
 
 ## File Permissions
 
-Incorrect file permissions can allow unauthorized access or modification.
+Incorrect file permissions can allow unauthorized modification of your codebase.
 
-### Only storage/ Should Be Writable
-
+### Only `storage/` Should Be Writable
 ```text
 storage/cache        ← Writable (web server user)
 storage/logs         ← Writable (web server user)
@@ -326,7 +274,6 @@ storage/framework    ← Writable (web server user)
 ```
 
 ### Everything Else Should Be Read-Only
-
 ```text
 app/                 ← Read-only
 config/              ← Read-only
@@ -335,32 +282,29 @@ public/              ← Read-only
 vendor/              ← Read-only
 ```
 
-### Set Permissions
-
+Set permissions:
 ```bash
 # Set ownership
 sudo chown -R www-data:www-data storage/
 
-# Set permissions (writable by owner only)
+# Set permissions
 sudo chmod -R 775 storage/
 ```
 
-### Never Make the Entire Project Writable
-
-Making the entire project writable allows attackers to modify source code, configuration, and dependencies.
+---
 
 ## Features Not Included
 
-The IntisariPHP Starter does not include built-in security features for:
+The IntisariPHP Starter does **not** package built-in components for:
+* **Authentication & Authorization** (e.g. login, RBAC)
+* **CSRF (Cross-Site Request Forgery) protection**
+* **Encryption and Hashing utilities** (use PHP's native `password_hash()` and `password_verify()`)
+* **Rate Limiter**
 
-- **CSRF protection** — depends on IntisariPHP core HTTP package
-- **Authentication** — depends on IntisariPHP core or third-party packages
-- **Role-based permissions** — depends on third-party packages
-- **Session security hardening** — depends on IntisariPHP core session package
-- **Rate limiting** — depends on IntisariPHP core or third-party packages
-- **Password hashing utilities** — use PHP's built-in `password_hash()` and `password_verify()`
+> [!NOTE]
+> *Future or core-dependent integration*: If authentication, authorization, or rate limiting are required, they must be manually integrated using third-party composer libraries (e.g., Firebase JWT, PHP-JWT) or handled at the web server layer (e.g. Nginx rate limiting rules).
 
-If these features are available through the IntisariPHP core or installed packages, they will be documented in their respective sections.
+---
 
 ## Security Checklist
 
@@ -374,11 +318,13 @@ Use this checklist before deploying to production:
 - [ ] All dynamic output is escaped
 - [ ] Database credentials are in `.env`, not source code
 - [ ] Production database user has minimal privileges
-- [ ] Dependencies are up to date
+- [ ] Dependencies are up to date (`composer audit` passes)
 - [ ] `storage/` is writable, everything else is read-only
 - [ ] HTTPS is enabled
 - [ ] `composer.lock` is committed
 
+---
+
 ## Next
 
-Continue to [Build Your First App](../tutorials/build-your-first-app.md).
+Continue to the [Build Your First App Tutorial](../tutorials/build-your-first-app.md).

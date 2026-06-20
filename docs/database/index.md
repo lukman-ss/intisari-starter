@@ -1,73 +1,43 @@
 # Database
 
-IntisariPHP Starter configures database connections through environment variables in `.env` and the configuration file `config/database.php`. The starter supports SQLite, MySQL, and PostgreSQL via PHP's PDO extension.
+## Database Overview
 
-## Database Configuration
+IntisariPHP Starter depends on `lukman-ss/intisari`, which integrates the installed `lukman-ss/database` package. `config/database.php` defines SQLite, MySQL, and PostgreSQL connections.
 
-Database settings are stored in `.env` and read by `config/database.php` at runtime.
+The database package uses PDO. Install the PDO driver required by the selected connection.
 
-```php
-// config/database.php (excerpt)
-return [
-    'default' => $env('DB_CONNECTION', 'sqlite'),
-    'connections' => [
-        'sqlite' => [...],
-        'mysql' => [...],
-        'pgsql' => [...],
-    ],
-];
-```
+The starter does not include an ORM or Eloquent-style model layer.
 
-The `DB_CONNECTION` variable determines which connection is used by default.
+## SQLite Default
 
-## SQLite for Local Development
-
-SQLite is the default database driver. It stores data in a local file, making it ideal for development and testing without needing a separate database server.
-
-### Configuration
-
-Set these values in `.env`:
+SQLite is the default local connection:
 
 ```env
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-### Creating the SQLite File
+It does not use `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD`, or `DB_CHARSET`.
 
-Before using SQLite, create the database file:
+## Creating `database/database.sqlite`
 
-**macOS / Linux:**
+The `database/` directory is included in the starter. Create the SQLite file from the project root:
 
 ```bash
-mkdir -p database
 touch database/database.sqlite
 ```
 
-**Windows PowerShell:**
+On Windows PowerShell:
 
 ```powershell
-New-Item -ItemType Directory -Force -Path database
 New-Item -ItemType File -Force -Path database/database.sqlite
 ```
 
-**Windows Command Prompt:**
-
-```cmd
-mkdir database
-echo. > database\database.sqlite
-```
-
-### Advantages of SQLite
-
-- No database server required
-- Database is a single file, easy to back up
-- Ideal for prototyping and small applications
-- Included with the starter by default
+Confirm that the PHP `pdo_sqlite` extension is enabled before connecting.
 
 ## MySQL Configuration
 
-For applications that need a full-featured relational database:
+Set the MySQL connection values in `.env`:
 
 ```env
 DB_CONNECTION=mysql
@@ -75,33 +45,15 @@ DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=intisari
 DB_USERNAME=root
-DB_PASSWORD=your_secure_password
+DB_PASSWORD=
 DB_CHARSET=utf8mb4
 ```
 
-These variables map to the connection settings in `config/database.php`:
-
-```php
-'mysql' => [
-    'driver' => 'mysql',
-    'host' => $env('DB_HOST', '127.0.0.1'),
-    'port' => (int) $env('DB_PORT', 3306),
-    'database' => $env('DB_DATABASE', 'intisari'),
-    'username' => $env('DB_USERNAME', 'root'),
-    'password' => $env('DB_PASSWORD', ''),
-    'charset' => $env('DB_CHARSET', 'utf8mb4'),
-],
-```
-
-Ensure the `pdo_mysql` PHP extension is enabled:
-
-```bash
-php -m | grep pdo_mysql
-```
+The selected database must exist and the configured user must have the permissions required by the application. Enable the PHP `pdo_mysql` extension.
 
 ## PostgreSQL Configuration
 
-For applications using PostgreSQL:
+Set PostgreSQL values appropriate for the server:
 
 ```env
 DB_CONNECTION=pgsql
@@ -109,83 +61,75 @@ DB_HOST=127.0.0.1
 DB_PORT=5432
 DB_DATABASE=intisari
 DB_USERNAME=postgres
-DB_PASSWORD=your_secure_password
+DB_PASSWORD=
 DB_CHARSET=utf8
 ```
 
-These variables map to the connection settings in `config/database.php`:
+Enable the PHP `pdo_pgsql` extension.
 
-```php
-'pgsql' => [
-    'driver' => 'pgsql',
-    'host' => $env('DB_HOST', '127.0.0.1'),
-    'port' => (int) $env('DB_PORT', 5432),
-    'database' => $env('DB_DATABASE', 'intisari'),
-    'username' => $env('DB_USERNAME', 'postgres'),
-    'password' => $env('DB_PASSWORD', ''),
-    'charset' => $env('DB_CHARSET', 'utf8'),
-],
-```
+## Database Credentials and `.env`
 
-Ensure the `pdo_pgsql` PHP extension is enabled:
+Store server database credentials in `.env`, not in `config/database.php` or committed documentation.
 
-```bash
-php -m | grep pdo_pgsql
-```
+- Commit `.env.example` with safe example values.
+- Do not commit `.env`.
+- Use a dedicated production database user with only required privileges.
+- Use different credentials for local, testing, and production environments.
 
 ## Running Queries
 
-The IntisariPHP core database package provides database connectivity through PDO. How you execute queries depends on the features available in the installed IntisariPHP core database package.
+The installed core exposes `Application::db()`, which returns a `Lukman\Database\Connection`. The connection supports parameterized `select`, `selectOne`, `statement`, and `affectingStatement` methods.
 
-### Using PDO Directly
-
-If no query builder is available, you can use PDO directly:
+Example using an application instance:
 
 ```php
-$pdo = new PDO('sqlite:database/database.sqlite');
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-// Select
-$stmt = $pdo->query('SELECT * FROM users');
-$users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Insert
-$stmt = $pdo->prepare('INSERT INTO users (name, email) VALUES (?, ?)');
-$stmt->execute(['Alice', 'alice@example.com']);
+$users = $app->db()->select(
+    'SELECT id, name FROM users WHERE status = ?',
+    ['active']
+);
 ```
 
-The IntisariPHP core database package may provide a query builder or database manager on top of PDO. Refer to the IntisariPHP core documentation for available query methods.
+Use bindings rather than concatenating untrusted values into SQL.
 
-## Migrations
+The dependency also contains a query builder, but the starter does not provide a dedicated query-builder helper or application-level guide. Treat query-builder usage as database-package dependent and verify the installed package API before using it.
 
-The starter does not include migration files or a migration command. Migration support depends on the IntisariPHP database package.
+## Migrations Status
 
-If migration support is available from the core, you would typically:
+The starter does not register a migration command and does not include a migrations directory or migration runner.
 
-1. Define table schemas in migration files
-2. Run a command to apply migrations
-3. Roll back migrations when needed
+Commands such as `php intisari migrate` and `php intisari make:migration` are not implemented by this starter.
 
-If migration commands are not available, manage your database schema manually using SQL or a database GUI tool.
+## Seeders Status
 
-## Environment Variables Summary
+The starter does not register a database seeding command and does not include a seeder structure.
 
-| Variable | Purpose | SQLite Default | MySQL Default | PostgreSQL Default |
-|----------|---------|:---:|:---:|:---:|
-| `DB_CONNECTION` | Default driver | `sqlite` | `mysql` | `pgsql` |
-| `DB_HOST` | Database host | — | `127.0.0.1` | `127.0.0.1` |
-| `DB_PORT` | Database port | — | `3306` | `5432` |
-| `DB_DATABASE` | Database name/path | `database/database.sqlite` | `intisari` | `intisari` |
-| `DB_USERNAME` | Database user | — | `root` | `postgres` |
-| `DB_PASSWORD` | Database password | — | (empty) | (empty) |
-| `DB_CHARSET` | Character set | — | `utf8mb4` | `utf8` |
+Commands such as `php intisari db:seed` are not implemented.
 
-## Rules
+## Common Mistakes
 
-- **Never commit database files** — add `database/*.sqlite` to `.gitignore`
-- **Never store credentials in source code** — use `.env` for all database passwords
-- **Use different databases** — separate databases for development, testing, and production
-- **Back up production data** — database files are not tracked in version control
+### Missing PDO Driver
+
+Enable `pdo_sqlite`, `pdo_mysql`, or `pdo_pgsql` for the selected connection.
+
+### Missing SQLite File
+
+Create `database/database.sqlite` before opening the default connection.
+
+### Reusing MySQL Settings for PostgreSQL
+
+Update the port, username, and charset when changing database engines.
+
+### Committing Credentials
+
+Keep passwords in `.env` and ensure `.env` remains ignored by version control.
+
+### Assuming ORM Features
+
+The database package provides connections and lower-level database utilities. The starter does not provide ORM models, automatic persistence, or model relationships.
+
+### Assuming Migration or Seeder Commands
+
+Check `php intisari` for registered commands. Migration and seeding commands are not part of the current starter.
 
 ## Next
 

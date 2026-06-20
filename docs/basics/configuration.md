@@ -1,33 +1,23 @@
 # Configuration
 
-IntisariPHP Starter uses a simple configuration system. Configuration files live in `config/` and return PHP arrays. Environment-specific values are stored in `.env` and read by the config files at runtime.
+## `config/` Directory
 
-## Configuration Files
+The starter loads PHP configuration files from `config/`. Each file returns an array and is stored under a key matching its filename.
 
-| File | Purpose |
-|------|---------|
-| `config/app.php` | Application name, environment, debug, URL, timezone, locale, providers, middleware |
-| `config/database.php` | Database connections (SQLite, MySQL, PostgreSQL) |
-| `config/session.php` | Session driver and lifetime |
-
-Each config file returns a PHP array:
-
-```php
-// config/app.php (excerpt)
-return [
-    'name' => $env('APP_NAME', 'Intisari App'),
-    'env' => $env('APP_ENV', 'local'),
-    'debug' => filter_var($env('APP_DEBUG', true), FILTER_VALIDATE_BOOLEAN),
-];
+```text
+config/
+├── app.php
+├── database.php
+└── session.php
 ```
 
-## The .env File
+For example, values returned by `config/app.php` are available under the `app` configuration key.
 
-The `.env` file stores values that differ between environments (local, staging, production). It is loaded at runtime and read by config files.
+## `.env` File
 
-### Creating Your .env File
+The `.env` file contains values that vary between environments. `bootstrap/app.php` loads it when the file exists, before loading the configuration directory.
 
-Copy the template to create your local environment file:
+Create the local file from the template:
 
 ```bash
 cp .env.example .env
@@ -39,155 +29,146 @@ On Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-### The .env.example File
+Do not commit `.env`. It may contain credentials and machine-specific settings.
 
-The `.env.example` file is the template that ships with the starter. It contains all available environment variables with sensible defaults:
+## `.env.example`
 
-```env
-APP_NAME="Intisari App"
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://127.0.0.1:8000
-APP_TIMEZONE=Asia/Jakarta
-APP_LOCALE=en
+`.env.example` documents every environment variable read by the starter configuration files. Keep example values safe and update the template whenever config files add or remove a variable.
 
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
+The default local connection remains SQLite. Server database values are present for MySQL or PostgreSQL and are unused while `DB_CONNECTION=sqlite`.
 
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-```
+## Application Configuration
 
-Commit `.env.example` to version control so other developers know which variables are available.
+`config/app.php` reads these variables:
 
-## Environment Variables
+| Variable | Default | Configuration value |
+| --- | --- | --- |
+| `APP_NAME` | `Intisari App` | Application name |
+| `APP_ENV` | `local` | Environment name |
+| `APP_DEBUG` | `true` | Debug configuration flag |
+| `APP_URL` | `http://127.0.0.1:8000` | Application URL |
+| `APP_TIMEZONE` | `Asia/Jakarta` | Application timezone setting |
+| `APP_LOCALE` | `en` | Application locale setting |
 
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `APP_NAME` | Application display name shown in views and emails | `Intisari App` |
-| `APP_ENV` | Environment name (`local`, `staging`, `production`) | `local` |
-| `APP_DEBUG` | Enable detailed error output. **Must be `false` in production.** | `true` |
-| `APP_URL` | Base application URL used for links and redirects | `http://127.0.0.1:8000` |
-| `APP_TIMEZONE` | Application timezone for date/time functions | `Asia/Jakarta` |
-| `APP_LOCALE` | Application locale for language and formatting | `en` |
-| `DB_CONNECTION` | Default database driver (`sqlite`, `mysql`, `pgsql`) | `sqlite` |
-| `DB_DATABASE` | Database name or SQLite file path | `database/database.sqlite` |
-| `SESSION_DRIVER` | Session storage driver (`file`) | `file` |
-| `SESSION_LIFETIME` | Session lifetime in minutes | `120` |
+The same file also returns `providers` and `middleware` arrays. In the current starter bootstrap, those arrays are configuration values and are not automatically registered at runtime.
 
-## How Config Files Read Environment Values
+## Database Configuration
 
-Each config file defines a local `$env` closure that reads from `$_ENV` and `$_SERVER`:
+`config/database.php` defines SQLite, MySQL, and PostgreSQL connection arrays.
 
-```php
-$env = static function (string $key, mixed $default = null): mixed {
-    return $_ENV[$key] ?? $_SERVER[$key] ?? $default;
-};
+### SQLite
 
-return [
-    'name' => $env('APP_NAME', 'Intisari App'),
-    'env' => $env('APP_ENV', 'local'),
-];
-```
-
-If a variable is not set in `.env`, the default value is used.
-
-## Local Configuration
-
-For local development, use these settings:
+SQLite is the default local connection and uses only:
 
 ```env
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://127.0.0.1:8000
-
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-Key points:
+`DB_DATABASE` is a filesystem path for SQLite.
 
-- **APP_DEBUG=true** — shows detailed error messages for easier debugging
-- **APP_URL=http://127.0.0.1:8000** — matches the development server address
-- **DB_CONNECTION=sqlite** — no database server needed for local development
+### MySQL
 
-## Production Configuration
+Use the server database variables when selecting MySQL:
 
-For production, change these critical settings:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=intisari
+DB_USERNAME=root
+DB_PASSWORD=
+DB_CHARSET=utf8mb4
+```
+
+### PostgreSQL
+
+Set values appropriate for PostgreSQL when selecting `pgsql`:
+
+```env
+DB_CONNECTION=pgsql
+DB_HOST=127.0.0.1
+DB_PORT=5432
+DB_DATABASE=intisari
+DB_USERNAME=postgres
+DB_PASSWORD=
+DB_CHARSET=utf8
+```
+
+The server database variables are not required for SQLite.
+
+## Session Configuration
+
+`config/session.php` exists and is read by the core session service provider. It uses:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SESSION_DRIVER` | `file` | Session storage driver |
+| `SESSION_LIFETIME` | `120` | Session lifetime in minutes |
+
+The file driver stores session data under `storage/framework/sessions`. Keep this path writable and outside the public web root.
+
+## Local and Production Configuration
+
+Local development defaults:
+
+```env
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://127.0.0.1:8000
+DB_CONNECTION=sqlite
+DB_DATABASE=database/database.sqlite
+```
+
+Production values must be set for the deployed environment:
 
 ```env
 APP_ENV=production
 APP_DEBUG=false
-APP_URL=https://yourdomain.com
-
-DB_CONNECTION=mysql
-DB_DATABASE=your_database_name
+APP_URL=https://example.com
 ```
 
-### Critical Production Rules
+Use production-specific database credentials and never commit them. Keep `APP_TIMEZONE=Asia/Jakarta` unless the application intentionally uses another timezone setting.
 
-**1. Never commit `.env` to version control**
+## Configuration Cache Command
 
-The `.gitignore` file included with the starter already excludes `.env`. This prevents secrets (database passwords, API keys) from being exposed in your repository.
-
-```gitignore
-# Already included in .gitignore
-.env
-```
-
-**2. Set `APP_DEBUG=false` in production**
-
-Debug mode exposes sensitive information (stack traces, environment variables, database queries) to users. This is a critical security risk.
-
-```env
-# WRONG — in production
-APP_DEBUG=true
-
-# CORRECT — in production
-APP_DEBUG=false
-```
-
-**3. Set `APP_URL` to the real domain in production**
-
-The `APP_URL` value is used for generating links and redirects. If it doesn't match your actual domain, links will be broken.
-
-```env
-# WRONG — in production
-APP_URL=http://127.0.0.1:8000
-
-# CORRECT — in production
-APP_URL=https://yourdomain.com
-```
-
-## Configuration Cache
-
-Cache all configuration into a single file for faster loading in production:
+The starter registers these commands:
 
 ```bash
 php intisari config:cache
-```
-
-This creates `storage/cache/config.php` with all configuration values pre-resolved.
-
-Clear the cache after changing `.env` or config files:
-
-```bash
 php intisari config:clear
 ```
 
-**Tip:** Run `config:cache` as part of your deployment process. Run `config:clear` whenever you update environment variables.
+`config:cache` writes the loaded configuration to `storage/cache/config.php`. `config:clear` removes that file.
 
-## Security Checklist
+The current `bootstrap/app.php` loads the `config/` directory directly and does not read `storage/cache/config.php`. Treat the cache command as available tooling, not as an active runtime optimization, until bootstrap cache loading is implemented.
 
-Before deploying to production:
+## Common Mistakes
 
-- [ ] `.env` is not committed to version control
-- [ ] `APP_DEBUG=false` is set
-- [ ] `APP_URL` matches the production domain
-- [ ] Database credentials are secure
-- [ ] `storage/` directory is not publicly accessible
-- [ ] Configuration cache is enabled (`config:cache`)
+### Missing `.env`
+
+Copy `.env.example` to `.env` before customizing local values.
+
+### Committing Secrets
+
+Commit `.env.example`, not `.env`. Do not place real database passwords in documentation or committed configuration.
+
+### Using Server Variables for SQLite
+
+SQLite uses `DB_CONNECTION` and `DB_DATABASE`. Host, port, username, password, and charset settings apply to MySQL or PostgreSQL.
+
+### Wrong Database Port or Charset
+
+Update `DB_PORT`, `DB_USERNAME`, and `DB_CHARSET` when switching between MySQL and PostgreSQL. Values copied for one server are not automatically changed for another.
+
+### Assuming Config Arrays Are Runtime Registration
+
+The current bootstrap explicitly registers `AppServiceProvider`; it does not automatically consume the `providers` or `middleware` arrays from `config/app.php`.
+
+### Assuming the Cache Is Loaded
+
+Creating `storage/cache/config.php` does not change the current bootstrap loading path. Clear stale cache files when reviewing configuration behavior.
 
 ## Next
 
-Continue to [Database](../database/index.md).
+Continue to [Error Handling](error-handling.md).

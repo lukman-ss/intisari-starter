@@ -27,8 +27,17 @@ jobs:
           php-version: ${{ matrix.php }}
           coverage: none
 
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Create storage directories
+        run: mkdir -p storage/cache storage/logs storage/framework
+
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: Run tests
         run: composer test
+
+      - name: Run documentation quality checks
+        run: composer docs:check

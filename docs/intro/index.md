@@ -2,48 +2,53 @@
 
 ## What Is IntisariPHP Starter?
 
-IntisariPHP Starter is a minimal project skeleton for building PHP web applications with the IntisariPHP framework. It provides the directory structure and starter files you need: a front controller, routes, controllers, middleware, views, configuration, storage, a CLI, and PHPUnit tests.
+IntisariPHP Starter is a minimal project skeleton for building PHP web applications. It provides the application structure, front controller, bootstrap file, routes, controllers, middleware, views, configuration, CLI entry point, storage directories, and test setup.
 
-The starter is not a complete application. It is a clean starting point that you extend by adding your own routes, controllers, views, and business logic.
+The starter is application code. You modify it to implement your own routes, views, and business logic.
 
-## Who Should Use It
+## What Is IntisariPHP Core?
 
-IntisariPHP Starter is designed for:
+IntisariPHP core is the `lukman-ss/intisari` Composer dependency used by the starter. It supplies the framework runtime and integrates the component packages used by the application.
 
-- PHP developers who want a clean, minimal foundation for web applications
-- Developers who prefer working with plain PHP files rather than heavy scaffolding
-- Anyone building small-to-medium web applications, APIs, or prototypes
-- Developers who want to understand how a PHP framework is structured by reading a small codebase
+Core code is installed under `vendor/` and should be updated through Composer rather than edited directly.
 
-## Starter vs Framework Core
+## Starter vs Core
 
-**IntisariPHP core** (`lukman-ss/intisari`) is the framework runtime. It provides routing, HTTP handling, dependency injection, configuration, console commands, and view rendering. The core is installed via Composer into `vendor/` and should not be modified directly.
+| Part | Responsibility |
+| --- | --- |
+| IntisariPHP Starter | Project structure and application-owned code |
+| IntisariPHP core | Framework runtime installed as a dependency |
 
-**IntisariPHP Starter** is your application code. It includes your controllers, views, routes, configuration, and tests. You build your application by modifying these files.
-
-The core framework is shared across all IntisariPHP projects. The starter is unique to your project.
+Each application has its own starter files. The core dependency is versioned separately and can be shared by multiple applications.
 
 ## Design Goals
 
-- **Simple** — clear directory layout, minimal defaults, no hidden configuration
-- **Lightweight** — no bundled application modules, no ORM, no authentication layer
-- **Composer-based** — all dependencies managed through Composer
-- **PHP 8.2+** — uses modern PHP syntax and features
-- **Testable** — PHPUnit configured and ready to use
+- **Simple** — keep the default application easy to inspect.
+- **Lightweight** — include a small starting structure without application-specific modules.
+- **Composer-based** — install and manage dependencies through Composer.
+- **PHP 8.2+** — use a supported modern PHP baseline.
+- **Clean structure** — separate application, configuration, routes, resources, storage, and tests.
+- **CLI-friendly** — provide a project CLI for common development tasks.
+- **Testable** — include PHPUnit configuration and example tests.
 
 ## When to Use It
 
-- You need a small PHP project with routing, views, and configuration but without heavy framework overhead
-- You want full control over which components to add
-- You are prototyping an idea and need something running quickly
-- You are building a REST API or a simple web application
+Use the starter when you need:
+
+- A small PHP web application or API foundation.
+- Explicit routes, controllers, views, and configuration.
+- An application that is easy to inspect and extend.
+- Control over which application features are added.
 
 ## When Not to Use It
 
-- You need a large-scale enterprise framework with built-in queues, broadcasting, and scheduling
-- You need a full-featured CMS or e-commerce platform out of the box
-- You require extensive official packages and ecosystem tooling comparable to Laravel or Symfony
+The starter may not fit when you need:
 
-## Next Steps
+- A complete CMS or e-commerce application.
+- Built-in application modules such as authentication, queues, or scheduling.
+- A large ecosystem of first-party application packages.
+- Features that are not present in the installed IntisariPHP packages.
 
-Continue to [Requirements](requirements.md) to check your development environment.
+## Next
+
+Continue to [Requirements](requirements.md).

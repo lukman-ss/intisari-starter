@@ -6,27 +6,62 @@ use Intisari\Application;
 
 assert($app instanceof Application);
 
+$isTesting = static function (): bool {
+    return getenv('APP_ENV') === 'testing'
+        || ($_ENV['APP_ENV'] ?? null) === 'testing'
+        || ($_SERVER['APP_ENV'] ?? null) === 'testing';
+};
+
+$className = static function (mixed $value, $output): ?string {
+    $name = (string) $value;
+
+    if ($name === '') {
+        $output->errorLine('Not enough arguments (missing: "name").');
+        return null;
+    }
+
+    if (preg_match('/^[A-Za-z_][A-Za-z0-9_]*$/', $name) !== 1) {
+        $output->errorLine('The name must be a valid PHP class name.');
+        return null;
+    }
+
+    return ucfirst($name);
+};
+
 $app->command('hello', static function ($input, $output): int {
     $output->writeln('Hello Intisari');
 
     return 0;
 }, 'Print hello message');
 
-$app->command('serve', static function ($input, $output): int {
-    $host = $input->option('host', '127.0.0.1');
+$app->command('serve', static function ($input, $output) use ($app, $isTesting): int {
+    $host = (string) $input->option('host', '127.0.0.1');
     $port = (int) $input->option('port', 8000);
+
+    if (preg_match('/^[A-Za-z0-9.-]+$/', $host) !== 1) {
+        $output->errorLine('Invalid host value.');
+        return 1;
+    }
+
+    if ($port < 1 || $port > 65535) {
+        $output->errorLine('Port must be between 1 and 65535.');
+        return 1;
+    }
 
     $output->writeln('Intisari development server started');
     $output->writeln("http://{$host}:{$port}");
 
-    $isTesting = (getenv('APP_ENV') === 'testing' || ($_ENV['APP_ENV'] ?? null) === 'testing' || ($_SERVER['APP_ENV'] ?? null) === 'testing');
-
-    if ($isTesting) {
+    if ($isTesting()) {
         $output->writeln(sprintf('Command preview: php -S %s:%d -t public', $host, $port));
         return 0;
     }
 
-    $commandStr = sprintf('php -S %s:%d -t public', $host, $port);
+    $commandStr = sprintf(
+        '%s -S %s -t %s',
+        escapeshellarg(PHP_BINARY),
+        escapeshellarg("{$host}:{$port}"),
+        escapeshellarg($app->basePath('public'))
+    );
     passthru($commandStr, $exitCode);
 
     return $exitCode;
@@ -44,7 +79,7 @@ $app->command('route:list', static function ($input, $output) use ($app): int {
         } else {
             $routes = null;
         }
-    } catch (\Throwable $e) {
+    } catch (\Throwable) {
         $routes = null;
     }
 
@@ -156,14 +191,12 @@ $app->command('config:clear', static function ($input, $output) use ($app): int 
     return 0;
 }, 'Remove the configuration cache file');
 
-$app->command('make:controller', static function ($input, $output) use ($app): int {
-    $name = $input->argument(0);
-    if (empty($name)) {
-        $output->errorLine('Not enough arguments (missing: "name").');
+$app->command('make:controller', static function ($input, $output) use ($app, $className): int {
+    $name = $className($input->argument(0), $output);
+    if ($name === null) {
         return 1;
     }
 
-    $name = ucfirst($name);
     if (!str_ends_with($name, 'Controller')) {
         $name .= 'Controller';
     }
@@ -208,14 +241,11 @@ PHP;
     return 0;
 }, 'Create a new controller class');
 
-$app->command('make:middleware', static function ($input, $output) use ($app): int {
-    $name = $input->argument(0);
-    if (empty($name)) {
-        $output->errorLine('Not enough arguments (missing: "name").');
+$app->command('make:middleware', static function ($input, $output) use ($app, $className): int {
+    $name = $className($input->argument(0), $output);
+    if ($name === null) {
         return 1;
     }
-
-    $name = ucfirst($name);
 
     $middlewareDir = $app->path('Middleware');
     if (!is_dir($middlewareDir)) {
@@ -264,14 +294,12 @@ PHP;
     return 0;
 }, 'Create a new middleware class');
 
-$app->command('make:provider', static function ($input, $output) use ($app): int {
-    $name = $input->argument(0);
-    if (empty($name)) {
-        $output->errorLine('Not enough arguments (missing: "name").');
+$app->command('make:provider', static function ($input, $output) use ($app, $className): int {
+    $name = $className($input->argument(0), $output);
+    if ($name === null) {
         return 1;
     }
 
-    $name = ucfirst($name);
     if (!str_ends_with($name, 'ServiceProvider')) {
         $name .= 'ServiceProvider';
     }
@@ -325,14 +353,12 @@ PHP;
     return 0;
 }, 'Create a new service provider class');
 
-$app->command('make:command', static function ($input, $output) use ($app): int {
-    $name = $input->argument(0);
-    if (empty($name)) {
-        $output->errorLine('Not enough arguments (missing: "name").');
+$app->command('make:command', static function ($input, $output) use ($app, $className): int {
+    $name = $className($input->argument(0), $output);
+    if ($name === null) {
         return 1;
     }
 
-    $name = ucfirst($name);
     if (!str_ends_with($name, 'Command')) {
         $name .= 'Command';
     }
@@ -410,10 +436,8 @@ $app->command('env', static function ($input, $output) use ($app): int {
     return 0;
 }, 'Display the current application environment');
 
-$app->command('test', static function ($input, $output): int {
-    $isTesting = (getenv('APP_ENV') === 'testing' || ($_ENV['APP_ENV'] ?? null) === 'testing' || ($_SERVER['APP_ENV'] ?? null) === 'testing');
-
-    if ($isTesting) {
+$app->command('test', static function ($input, $output) use ($isTesting): int {
+    if ($isTesting()) {
         $output->writeln('Command preview: composer test');
         return 0;
     }

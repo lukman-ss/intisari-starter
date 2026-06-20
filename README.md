@@ -2,12 +2,12 @@
 
 ![IntisariPHP Starter Hero](docs/hero.png)
 
-A minimal PHP application starter built on IntisariPHP. Includes routing, controllers, views, configuration, and PHPUnit setup out of the box.
+A minimal project starter for building PHP applications with IntisariPHP.
 
 ## Requirements
 
-- PHP >= 8.2
-- Composer
+- PHP 8.2 or newer
+- Composer 2.x
 
 ## Quick Start
 
@@ -18,23 +18,29 @@ cp .env.example .env
 composer serve
 ```
 
-The application will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
+The application is available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
-```bash
-composer test
-```
-
-## Running Development Server
+## Development Server
 
 ```bash
 composer serve
 ```
+
+The built-in development server is intended for local development only.
 
 ## Running Tests
 
 ```bash
 composer test
 ```
+
+## Documentation
+
+- [Documentation Index](docs/index.md)
+- [Getting Started](docs/getting-started.md)
+- [CLI Reference](docs/cli/index.md)
+- [Deployment](docs/deployment/index.md)
+- [Security](docs/security/index.md)
 
 ## Project Structure
 
@@ -44,7 +50,7 @@ bootstrap/    Application bootstrap
 config/       Configuration files
 database/     Local database files
 public/       Web entry point
-resources/    Views and frontend resources
+resources/    View templates
 routes/       Web and console routes
 storage/      Runtime files
 tests/        PHPUnit tests
@@ -99,16 +105,9 @@ The application comes with the `intisari` command-line utility. You can use it t
   php intisari test
   ```
 
-## Documentation
-
-- [Documentation Index](docs/index.md)
-- [Getting Started](docs/getting-started.md)
-- [Command Line Usage](docs/cli/index.md)
-- [Deployment](docs/deployment/index.md)
-
 ## IntisariPHP Core
 
-This starter is powered by [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari).
+This starter uses [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari) as its framework runtime.
 
 ## License
 

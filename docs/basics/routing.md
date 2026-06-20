@@ -1,160 +1,75 @@
 # Routing
 
-Routes map HTTP requests to your application code. When a user visits a URL, the router determines which controller or closure handles the request. All web routes are defined in `routes/web.php`.
+## What Is Routing?
 
-## The routes/web.php File
+Routing maps an HTTP method and URI to a handler. In this starter, routes are registered through the `Intisari\Application` instance using methods such as `$app->get(...)`.
 
-The `routes/web.php` file is loaded by `public/index.php` for every web request. It registers routes using the `$app` object (an instance of `Intisari\Application`):
+## `routes/web.php`
+
+Web routes belong in `routes/web.php`. The front controller loads this file before running the application:
 
 ```php
-<?php
+$app->loadRoutes($app->routesPath('web.php'));
+```
 
-declare(strict_types=1);
+Use `$app` for route registration. The application delegates registered routes to its router.
 
+## Default Routes
+
+The starter contains three default routes:
+
+```php
 use App\Controllers\HomeController;
 use App\Controllers\StatusController;
-use Intisari\Application;
-use Lukman\Router\Router;
-
-assert($app instanceof Application);
-assert($router instanceof Router);
 
 $app->get('/', [HomeController::class, 'index']);
 $app->get('/health', static fn (): string => 'OK');
 $app->get('/status', [StatusController::class, 'index']);
 ```
 
-## Defining Routes
-
-Each route has three parts:
-
-1. **HTTP method** — `get`, `post`, `put`, `patch`, `delete`
-2. **URI path** — the URL path to match
-3. **Handler** — a controller method or closure
-
-```php
-$app->get('/users', [UserController::class, 'index']);
-```
+| Method | URI | Handler |
+| --- | --- | --- |
+| `GET` | `/` | `HomeController::index` |
+| `GET` | `/health` | Closure returning `OK` |
+| `GET` | `/status` | `StatusController::index` |
 
 ## Closure Routes
 
-For simple responses, use a closure:
+A closure can handle a small route directly:
 
 ```php
 $app->get('/health', static fn (): string => 'OK');
-
-$app->get('/time', function () {
-    return 'Current time: ' . date('H:i:s');
-});
-
-$app->post('/contact', function () {
-    return 'Message received';
-});
 ```
 
-Closures are useful for:
-
-- Health check endpoints
-- Simple API responses
-- Prototyping before creating controllers
+Use a controller when request handling grows beyond a small response.
 
 ## Controller Routes
 
-For more complex logic, point to a controller class and method:
+A controller route uses a class and method pair:
 
 ```php
-use App\Controllers\HomeController;
-use App\Controllers\UserController;
+use App\Controllers\StatusController;
 
-$app->get('/', [HomeController::class, 'index']);
-$app->get('/users', [UserController::class, 'index']);
-$app->post('/users', [UserController::class, 'store']);
+$app->get('/status', [StatusController::class, 'index']);
 ```
 
-Controllers must be imported with `use` statements at the top of the file.
-
-See [Controllers](controllers.md) for creating controllers.
+The controller class must be autoloadable and the referenced method must exist.
 
 ## HTTP Methods
 
-The router supports all standard HTTP methods:
-
-### GET
-
-Retrieve data or display pages:
+The application exposes registration methods for the standard methods used by the starter's router:
 
 ```php
-$app->get('/', [HomeController::class, 'index']);
-$app->get('/users', [UserController::class, 'index']);
-$app->get('/users/{id}', [UserController::class, 'show']);
+$app->get('/example', $handler);
+$app->post('/example', $handler);
+$app->put('/example', $handler);
+$app->patch('/example', $handler);
+$app->delete('/example', $handler);
 ```
 
-### POST
+These handlers are placeholders. Replace `$handler` with a valid closure or controller pair in application code.
 
-Create new resources or submit forms:
-
-```php
-$app->post('/users', [UserController::class, 'store']);
-$app->post('/contact', [ContactController::class, 'submit']);
-```
-
-### PUT
-
-Update entire resources:
-
-```php
-$app->put('/users/{id}', [UserController::class, 'update']);
-```
-
-### PATCH
-
-Partial updates to resources:
-
-```php
-$app->patch('/users/{id}', [UserController::class, 'patch']);
-```
-
-### DELETE
-
-Remove resources:
-
-```php
-$app->delete('/users/{id}', [UserController::class, 'destroy']);
-```
-
-## Route Parameters
-
-Routes can capture dynamic segments from the URL:
-
-```php
-$app->get('/users/{id}', [UserController::class, 'show']);
-$app->get('/posts/{slug}', [PostController::class, 'show']);
-$app->get('/users/{userId}/posts/{postId}', [UserPostController::class, 'show']);
-```
-
-Parameters are passed to your handler:
-
-```php
-// app/Controllers/UserController.php
-public function show($request, $id)
-{
-    return "User ID: $id";
-}
-```
-
-### Parameter Constraints
-
-Add constraints to validate parameters:
-
-```php
-$app->get('/users/{id}', [UserController::class, 'show'])
-    ->where('id', '[0-9]+');
-
-$app->get('/posts/{slug}', [PostController::class, 'show'])
-    ->where('slug', '[a-z0-9\-]+');
-```
-
-## Testing Routes in the Browser
+## Testing Routes in a Browser
 
 Start the development server:
 
@@ -162,64 +77,49 @@ Start the development server:
 composer serve
 ```
 
-Open your browser and navigate to:
+Open the default GET routes:
 
-```
+```text
 http://127.0.0.1:8000/
 http://127.0.0.1:8000/health
 http://127.0.0.1:8000/status
 ```
 
-### Testing POST Routes
+A browser address bar is suitable for GET requests. Use an HTTP client for other methods.
 
-Browsers cannot send POST requests directly. Use one of these tools:
+## Testing Routes with `curl`
 
-**cURL:**
+Request the health endpoint:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/users
+curl -i http://127.0.0.1:8000/health
 ```
 
-**Postman or Insomnia:**
+Request the JSON status endpoint:
 
-Create a POST request to `http://127.0.0.1:8000/users`.
-
-**HTML Form:**
-
-```html
-<form method="POST" action="/users">
-    <input type="text" name="name">
-    <button type="submit">Submit</button>
-</form>
+```bash
+curl -i http://127.0.0.1:8000/status
 ```
 
 ## Listing Routes
 
-View all registered routes:
+List the routes registered by `routes/web.php`:
 
 ```bash
 php intisari route:list
 ```
 
-This displays a table with:
-
-- HTTP method
-- URI path
-- Route name (if set)
-- Handler (controller or closure)
+The command displays the HTTP method, URI, route name when present, and handler.
 
 ## Common Mistakes
 
-### Forgetting to Import Controller
+### Using the Wrong Registration Variable
 
-**Wrong:**
+Use `$app->get(...)` in the starter's `routes/web.php`. Do not use an undefined global `get(...)` helper.
 
-```php
-$app->get('/', [HomeController::class, 'index']);
-// Error: Class "HomeController" not found
-```
+### Missing Controller Import
 
-**Correct:**
+Import controller classes before referencing them:
 
 ```php
 use App\Controllers\HomeController;
@@ -229,90 +129,74 @@ $app->get('/', [HomeController::class, 'index']);
 
 ### Wrong HTTP Method
 
-**Wrong:**
+A request must use the same HTTP method as its route registration. A POST request does not match a route registered only with `$app->get(...)`.
+
+### Wrong URI or Method Name
+
+Check route spelling, the leading slash, controller namespace, and controller method name.
+
+### Routes Not Loaded
+
+Web entry points must load `routes/web.php`. The included `public/index.php` already performs this step.
+
+## Advanced Routing
+
+The IntisariPHP router supports advanced routing capabilities like parameters, constraints, groups, names, and route middleware.
+
+> [!NOTE]
+> The examples below are illustrative fragments for `routes/web.php`. The controller and middleware classes referenced (`UserController`, `ProfileController`, `ApiUserController`, `DashboardController`, `AuthMiddleware`) do not exist in the starter by default — you must create them first.
+
+### Route Parameters
+Route parameters are defined inside curly braces `{}` and are automatically passed to your controller methods or closures:
 
 ```php
-$app->get('/users', [UserController::class, 'store']);
-// Error: Method not allowed when submitting POST form
+// routes/web.php
+$app->get('/users/{id}', function ($request, $id) {
+    return 'User ID: ' . $id;
+});
 ```
 
-**Correct:**
+### Route Constraints
+You can restrict parameter formats using the `where()` method on a route:
 
 ```php
-$app->post('/users', [UserController::class, 'store']);
+// routes/web.php — UserController must be created in app/Controllers/
+$app->get('/users/{id}', [UserController::class, 'show'])->where('id', '[0-9]+');
 ```
 
-### Missing Route Registration
-
-**Wrong:**
+### Named Routes
+Name a route for reverse URL generation using the `name()` method:
 
 ```php
-// User tries to access /profile but it's not in routes/web.php
-// Result: 404 Not Found
+// routes/web.php — ProfileController must be created in app/Controllers/
+$app->get('/profile', [ProfileController::class, 'show'])->name('profile.show');
 ```
 
-**Correct:**
+Generate the URL using the router:
+```php
+$url = $app->router()->url('profile.show'); // Returns '/profile'
+```
+
+### Route Groups
+Group routes with shared attributes such as prefixes or middleware:
 
 ```php
-$app->get('/profile', [ProfileController::class, 'show']);
+// routes/web.php — ApiUserController must be created in app/Controllers/
+$app->group(['prefix' => '/api'], function ($router) {
+    $router->get('/users', [ApiUserController::class, 'index']);
+});
 ```
 
-### Route Order Matters
-
-Routes are matched in the order they are defined. Place specific routes before general ones:
-
-**Wrong:**
+### Route Middleware
+Apply middleware to specific routes using the `middleware()` method:
 
 ```php
-$app->get('/users/{id}', [UserController::class, 'show']);
-$app->get('/users/create', [UserController::class, 'create']);
-// /users/create matches {id} first
+// routes/web.php — DashboardController and AuthMiddleware must be created first
+$app->get('/dashboard', [DashboardController::class, 'index'])->middleware(AuthMiddleware::class);
 ```
 
-**Correct:**
-
-```php
-$app->get('/users/create', [UserController::class, 'create']);
-$app->get('/users/{id}', [UserController::class, 'show']);
-// /users/create matches the specific route
-```
-
-### Server Not Running
-
-**Symptom:** Browser shows "Connection refused" or "Cannot connect"
-
-**Solution:**
-
-```bash
-composer serve
-```
-
-### Typo in Route Path
-
-**Wrong:**
-
-```php
-$app->get('/uesrs', [UserController::class, 'index']);
-// User navigates to /users and gets 404
-```
-
-**Correct:**
-
-```php
-$app->get('/users', [UserController::class, 'index']);
-```
-
-## Advanced Features
-
-The IntisariPHP core router also supports:
-
-- **Named routes** — assign names to routes for URL generation
-- **Route groups** — group routes with shared attributes (prefix, middleware)
-- **Route middleware** — apply middleware to specific routes
-
-These features are available through the core router but are not used in the default starter routes.
-
-See the [IntisariPHP core documentation](https://github.com/lukman-ss/router) for advanced routing features.
+> [!NOTE]
+> Route model binding is **not** supported natively. Database parameters must be manually resolved inside your controllers.
 
 ## Next
 

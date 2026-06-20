@@ -5,64 +5,56 @@ IntisariPHP Starter requires PHP 8.2 or newer and Composer.
 ## Required Software
 
 | Software | Minimum Version | Purpose |
-|----------|----------------|---------|
-| PHP | 8.2 | Runtime |
-| Composer | 2.x | Dependency management |
+| --- | --- | --- |
+| PHP | 8.2 | Application runtime |
+| Composer | 2.x recommended | Dependency management |
 
-## PHP Extensions
+## Recommended PHP Extensions
 
-The IntisariPHP core depends on these extensions. Most are enabled by default in standard PHP installations.
+The following extensions are recommended for the starter, its database configuration, and development tooling:
 
 | Extension | Purpose |
-|-----------|---------|
-| `mbstring` | Multibyte string handling for proper character encoding |
-| `openssl` | Encryption and secure communication |
-| `pdo` | Database access via PHP Data Objects |
-| `tokenizer` | PHP code tokenization for route and command parsing |
-| `json` | JSON encoding and decoding for API responses and configuration |
+| --- | --- |
+| `mbstring` | Multibyte string handling |
+| `openssl` | Secure communication used by common PHP tooling |
+| `pdo` | Database access |
+| `tokenizer` | PHP token processing used by development tools |
+| `json` | JSON encoding and decoding |
 
-## Terminal Access
+Extension requirements can vary by database driver and development dependency. Composer reports any missing extension required by the installed dependency set.
 
-You will use the terminal (command line) throughout development. Common tasks include:
+## Basic Terminal Usage
 
-- Running Composer commands to install dependencies.
-- Starting the development server with `composer serve`.
-- Running tests with `composer test`.
-- Generating controllers, middleware, and commands with `php intisari make:*`.
+Development tasks are run from a terminal. You should be able to:
 
-Make sure you can open a terminal and run PHP and Composer commands before continuing with the installation.
+- Change directories with `cd`.
+- Run PHP and Composer commands.
+- Copy `.env.example` to `.env`.
+- Start and stop a foreground development process.
 
-**Windows users:** PowerShell, Command Prompt, and Windows Terminal all work. The commands in this guide use Unix-style syntax (`cp`, `ls`). On Windows PowerShell, use `Copy-Item` instead of `cp`.
+PowerShell, Command Prompt, Windows Terminal, and common Unix shells can run the commands used by the starter. File-copy syntax may differ between platforms.
 
-## Verify Your Setup
+## Verify the Environment
 
-Run these commands to confirm your environment is ready:
+Check the PHP version:
 
 ```bash
 php -v
 ```
 
-This should print PHP 8.2 or newer:
-
-```
-PHP 8.2.x (cli) (built: ...)
-```
+Check the Composer version:
 
 ```bash
 composer -V
 ```
 
-This should print Composer 2.x:
-
-```
-Composer version 2.x.x ...
-```
+List enabled PHP extensions:
 
 ```bash
 php -m
 ```
 
-This lists all enabled PHP extensions. Confirm that `mbstring`, `openssl`, `pdo`, `tokenizer`, and `json` appear in the output.
+Confirm that PHP is at least version 8.2 and review the output for the recommended extensions.
 
 ## Next
 

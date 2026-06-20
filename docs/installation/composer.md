@@ -51,7 +51,7 @@ Copy-Item .env.example .env
 
 **Windows Command Prompt:**
 
-```cmd
+```powershell
 copy .env.example .env
 ```
 
@@ -67,6 +67,11 @@ APP_URL=http://127.0.0.1:8000
 
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USERNAME=root
+DB_PASSWORD=
+DB_CHARSET=utf8mb4
 
 SESSION_DRIVER=file
 SESSION_LIFETIME=120

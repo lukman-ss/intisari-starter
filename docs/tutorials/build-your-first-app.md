@@ -1,74 +1,75 @@
 # Build Your First App
 
-This tutorial walks you through building a small two-page IntisariPHP application from scratch. No database, no authentication, no middleware — just routes, controllers, and a test.
+This tutorial walks you through building a two-page IntisariPHP application from scratch. We will add a new "About Us" page with a custom controller, dynamic view layout extension, and a feature test to verify its behavior.
 
-## What You Will Build
+No database, no authentication, and no middleware are required — just routes, controllers, views, and tests.
 
-- A home page at `/` that returns "Hello Intisari"
-- An about page at `/about` that returns "About Intisari"
-- A PHPUnit test that verifies the home page works
+---
 
-**Estimated time:** 10 minutes
+## 1. Create Project
 
-## 1. Create the Project
-
-Create a new project using Composer:
+First, create a new project using Composer:
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
 cd my-app
 ```
 
-This downloads the starter, installs all dependencies, and sets up autoloading.
+This commands pulls down the starter application, installs all required framework packages, and sets up autoloading.
 
-## 2. Copy the Environment File
+---
 
-Copy the example environment file to create your local configuration:
+## 2. Copy Env
+
+Initialize your local environment configuration file:
 
 **macOS / Linux:**
-
 ```bash
 cp .env.example .env
 ```
 
 **Windows PowerShell:**
-
 ```powershell
 Copy-Item .env.example .env
 ```
 
-The `.env` file stores your local settings. The defaults work for this tutorial without changes.
+The defaults configured in `.env` are suitable for local development.
 
-## 3. Run the Development Server
+---
 
-Start the built-in development server:
+## 3. Run Server
+
+Start the PHP built-in development server using the Composer script:
 
 ```bash
 composer serve
 ```
 
 You should see:
-
 ```text
 Intisari development server started
 http://127.0.0.1:8000
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. You should see the default IntisariPHP welcome page.
+---
 
-## 4. Edit the Home Route
+## 4. Open Default Page
 
-Open `routes/web.php`. The home route already exists:
+Open your browser and navigate to [http://127.0.0.1:8000](http://127.0.0.1:8000). You will see the default welcome screen.
+
+Let's look at [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php) to see how this page is served:
 
 ```php
 $app->get('/', [HomeController::class, 'index']);
 ```
 
-This route maps `GET /` to the `index()` method of `HomeController`. No changes needed here.
+This route matches `GET /` and executes the `index` method on `HomeController`.
 
-## 5. Create (or Edit) the HomeController
+---
 
-Open `app/Controllers/HomeController.php`. Replace the content with:
+## 5. Create Controller
+
+Let's build a new controller for our About page. Create the file `app/Controllers/AboutController.php` with the following content:
 
 ```php
 <?php
@@ -77,209 +78,157 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-final class HomeController
+final class AboutController
 {
     public function index(): string
     {
-        return 'Hello Intisari';
+        return view('about', [
+            'title' => 'About Us',
+            'description' => 'This is the about page of our first IntisariPHP application.',
+        ]);
     }
 }
 ```
 
-Save the file and reload [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. You should now see "Hello Intisari" instead of the welcome page.
+---
 
-## 6. Add an About Route
+## 6. Register Route
 
-Add a second method to `HomeController`:
+Next, register the route in [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php).
+
+Open the file and import the controller at the top, then register a new `GET /about` route pointing to `AboutController@index`:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace App\Controllers;
-
-final class HomeController
-{
-    public function index(): string
-    {
-        return 'Hello Intisari';
-    }
-
-    public function about(): string
-    {
-        return 'About Intisari';
-    }
-}
-```
-
-Now register the new route in `routes/web.php`:
-
-```php
+use App\Controllers\AboutController;  // 1. Import the new controller
 use App\Controllers\HomeController;
+use App\Controllers\StatusController;
+use Intisari\Application;
+
+assert($app instanceof Application);
 
 $app->get('/', [HomeController::class, 'index']);
-$app->get('/about', [HomeController::class, 'about']);
+$app->get('/health', static fn (): string => 'OK');
+$app->get('/status', [StatusController::class, 'index']);
+
+// 2. Register the new route
+$app->get('/about', [AboutController::class, 'index']);
 ```
 
-Open [http://127.0.0.1:8000/about](http://127.0.0.1:8000/about) in your browser. You should see "About Intisari".
+---
 
-## 7. Add a PHPUnit Test
+## 7. Add About Page View
 
-Create a test file at `tests/Unit/HomeControllerTest.php`:
+IntisariPHP features a native template engine with layout extensions. Create a new view file at `resources/views/about.php`:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace Tests\Unit;
+// Extend the core app layout
+$extend('layouts.app');
 
-use App\Controllers\HomeController;
-use PHPUnit\Framework\TestCase;
+// Fill the title section
+$start('title');
+echo $e($title ?? 'About Us');
+$end();
 
-final class HomeControllerTest extends TestCase
+// Fill the content section
+$start('content');
+?>
+<main>
+    <h1><?= $e($title ?? 'About Us') ?></h1>
+    <p><?= $e($description ?? 'Welcome to the about page.') ?></p>
+</main>
+<?php
+$end();
+```
+
+Go to [http://127.0.0.1:8000/about](http://127.0.0.1:8000/about) in your browser. You will see the new page rendered with the app layout header and your custom dynamic variables.
+
+---
+
+## 8. Add a Simple Test
+
+Let's write a test to make sure our new page is stable. Create the file `tests/Feature/AboutPageTest.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature;
+
+use Lukman\Http\Request;
+use Tests\TestCase;
+
+final class AboutPageTest extends TestCase
 {
-    public function test_home_returns_string(): void
+    public function testAboutPageReturns200AndExpectedContent(): void
     {
-        $controller = new HomeController();
+        $app = $this->createApplication();
+        $response = $app->handle(new Request('GET', '/about'));
 
-        $this->assertSame('Hello Intisari', $controller->index());
-    }
-
-    public function test_about_returns_string(): void
-    {
-        $controller = new HomeController();
-
-        $this->assertSame('About Intisari', $controller->about());
+        $this->assertSame(200, $response->status());
+        $this->assertStringContainsString('About Us', $response->content());
+        $this->assertStringContainsString('first IntisariPHP application', $response->content());
     }
 }
 ```
 
-This test creates a `HomeController` instance and verifies both methods return the expected strings.
+---
 
-## 8. Run the Tests
+## 9. Run Composer Test
+
+Run the test suite using the Composer shortcut command:
 
 ```bash
 composer test
 ```
 
-Expected output:
-
-```
+You will see:
+```text
 PHPUnit 10.x by Sebastian Bergmann and contributors.
 
-..                                                          2 / 2 (100%)
-
-Time: 00:00.050, Memory: 8.00 MB
-
-OK (2 tests, 2 assertions)
+OK (136 tests, 416 assertions)
 ```
 
-All tests should pass.
+Your new test has run and passed alongside the starter's default tests!
 
-## Final Project Structure
+---
 
-The files you modified or created:
+## Troubleshooting
 
-```text
-my-app/
-  app/Controllers/HomeController.php   ← Edited: added about() method
-  routes/web.php                       ← Edited: added /about route
-  tests/Unit/HomeControllerTest.php    ← Created: new test file
-```
+### Class Not Found / Autoload Error
+* **Symptom**: `Class "App\Controllers\AboutController" not found`.
+* **Solution**: Ensure your namespace is `App\Controllers` (pluralized with an `s`) and that the file is located at `app/Controllers/AboutController.php` (case-sensitive). If everything looks correct, try regenerating the autoload files:
+  ```bash
+  composer dump-autoload
+  ```
 
-Other important files that were already in place:
+### View Template Not Found
+* **Symptom**: `View file [...] not found`.
+* **Solution**: Ensure the template is named exactly `about.php` (all lowercase) and resides under `resources/views/`.
 
-```text
-my-app/
-  public/index.php                     ← Front controller
-  bootstrap/app.php                    ← Application bootstrap
-  config/app.php                       ← Application configuration
-  .env                                 ← Local environment settings
-  composer.json                        ← Dependencies and scripts
-  phpunit.xml                          ← Test configuration
-```
+### Route Typo or 404
+* **Symptom**: Page displays `404 Not Found`.
+* **Solution**: Check that the route registered in `routes/web.php` exactly matches the URL path (paths are case-sensitive). Ensure the web server is running.
 
-## Common Mistakes
+---
 
-### Wrong Namespace
+## Next Steps
 
-Controllers must use `namespace App\Controllers;` (with an "s").
+Now that you have built your first page:
+- Read about [Routing](../basics/routing.md) to understand route groups and parameters.
+- Learn how [Controllers](../basics/controllers.md) manage request logic.
+- Look into [Views](../basics/views.md) to build more complex template structures.
 
-```php
-// WRONG
-namespace App\Controller;  // missing "s"
+---
 
-// CORRECT
-namespace App\Controllers;
-```
+## Next
 
-### Missing Import in routes/web.php
-
-Always import the controller class at the top of `routes/web.php`:
-
-```php
-use App\Controllers\HomeController;
-
-$app->get('/', [HomeController::class, 'index']);
-```
-
-Without the `use` statement, PHP cannot find the `HomeController` class.
-
-### Wrong Method Name in Route
-
-The route must reference a method that exists in the controller:
-
-```php
-// WRONG — "home" method does not exist
-$app->get('/', [HomeController::class, 'home']);
-
-// CORRECT — "index" method exists
-$app->get('/', [HomeController::class, 'index']);
-```
-
-### URL Typo
-
-The route path must match exactly:
-
-```php
-$app->get('/about', [HomeController::class, 'about']);
-```
-
-- `http://127.0.0.1:8000/about` ✓ works
-- `http://127.0.0.1:8000/About` ✗ case-sensitive, returns 404
-- `http://127.0.0.1:8000/about/` ✗ trailing slash may return 404
-
-### Server Not Running
-
-If you see "Connection refused" in your browser, the development server is not running:
-
-```bash
-composer serve
-```
-
-### Missing declare(strict_types=1)
-
-Always include `declare(strict_types=1);` at the top of PHP files:
-
-```php
-<?php
-
-declare(strict_types=1);
-
-namespace App\Controllers;
-```
-
-### Forgetting to Save the File
-
-If your changes don't appear in the browser, make sure you saved the file. The development server reloads files on each request, but unsaved changes won't be picked up.
-
-## What's Next
-
-You now have a working IntisariPHP application with routes, controllers, and tests. Continue learning:
-
-- [Routing](../basics/routing.md) — learn about HTTP methods, parameters, and route organization
-- [Controllers](../basics/controllers.md) — learn about return values, naming conventions, and best practices
-- [Views](../basics/views.md) — learn how to render HTML templates
-- [REST API Basics](rest-api.md) — build a JSON API with IntisariPHP
+Continue to the [REST API Basics Tutorial](rest-api.md).

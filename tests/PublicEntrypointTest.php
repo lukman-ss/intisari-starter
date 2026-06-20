@@ -32,4 +32,27 @@ final class PublicEntrypointTest extends TestCase
         $this->assertIsString($content);
         $this->assertStringContainsString('RewriteRule ^ index.php [L]', $content);
     }
+
+    public function testProjectRootIsSeparateFromPublicDirectory(): void
+    {
+        $projectRoot = dirname(__DIR__);
+        $publicDir = $projectRoot . '/public';
+
+        // Ensure key sensitive files and directories do not reside inside the public directory
+        $this->assertFileDoesNotExist($publicDir . '/.env');
+        $this->assertFileDoesNotExist($publicDir . '/.env.example');
+        $this->assertFileDoesNotExist($publicDir . '/composer.json');
+        $this->assertDirectoryDoesNotExist($publicDir . '/app');
+        $this->assertDirectoryDoesNotExist($publicDir . '/config');
+        $this->assertDirectoryDoesNotExist($publicDir . '/storage');
+        $this->assertDirectoryDoesNotExist($publicDir . '/tests');
+
+        // Ensure they exist in the project root instead
+        $this->assertFileExists($projectRoot . '/.env.example');
+        $this->assertFileExists($projectRoot . '/composer.json');
+        $this->assertDirectoryExists($projectRoot . '/app');
+        $this->assertDirectoryExists($projectRoot . '/config');
+        $this->assertDirectoryExists($projectRoot . '/storage');
+        $this->assertDirectoryExists($projectRoot . '/tests');
+    }
 }

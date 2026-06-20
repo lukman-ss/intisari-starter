@@ -1,12 +1,12 @@
 # IntisariPHP Starter Documentation
 
-IntisariPHP Starter is a minimal PHP web application skeleton. It provides the project structure you need to start developing: a front controller, routes, controllers, middleware, views, configuration, storage, a CLI, and PHPUnit testing.
+IntisariPHP Starter is a minimal project skeleton for building PHP web applications. It provides the application directories, entry points, configuration, routes, views, CLI commands, and test setup used by a new project.
 
-## What's Included
+## Starter and Core
 
-**IntisariPHP core** ([`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari)) is the framework. It provides routing, HTTP handling, dependency injection, configuration, console commands, and view rendering. The core is installed via Composer into `vendor/` and is not modified directly.
+**IntisariPHP Starter** is the project you install and modify. It contains your application code, configuration, routes, views, storage directories, and tests.
 
-**IntisariPHP Starter** is your application. You modify the starter's files — controllers, routes, views, config — to build your project. The starter depends on the core but remains a separate, lightweight skeleton.
+**IntisariPHP core** is the `lukman-ss/intisari` Composer dependency. It provides the framework runtime used by the starter and is installed under `vendor/`.
 
 ## Quick Start
 
@@ -17,8 +17,6 @@ cp .env.example .env
 composer serve
 composer test
 ```
-
-The application will be available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ## Documentation Map
 
@@ -32,12 +30,14 @@ The application will be available at [http://127.0.0.1:8000](http://127.0.0.1:80
 - [Installation Overview](installation/index.md)
 - [Composer Installation](installation/composer.md)
 - [Running the Application](installation/running.md)
+- [Installation Troubleshooting](installation/troubleshooting.md)
 
 ### Application Overview
 
-- [Overview](overview/index.md)
+- [Application Overview](overview/index.md)
 - [Application Structure](overview/application-structure.md)
 - [Request Lifecycle](overview/request-lifecycle.md)
+- [Starter vs. Core](overview/starter-vs-core.md)
 
 ### Basic Concepts
 
@@ -46,12 +46,14 @@ The application will be available at [http://127.0.0.1:8000](http://127.0.0.1:80
 - [Views](basics/views.md)
 - [Middleware](basics/middleware.md)
 - [Configuration](basics/configuration.md)
+- [Error Handling](basics/error-handling.md)
+- [Logging](basics/logging.md)
 
 ### Database
 
 - [Database](database/index.md)
 
-### CLI
+### Command Line
 
 - [Command Line Usage](cli/index.md)
 
@@ -67,7 +69,19 @@ The application will be available at [http://127.0.0.1:8000](http://127.0.0.1:80
 
 - [Security](security/index.md)
 
+### Release Management
+
+- [Release Readiness Checklist](release-readiness.md)
+
 ### Tutorials
 
 - [Build Your First App](tutorials/build-your-first-app.md)
 - [REST API Basics](tutorials/rest-api.md)
+
+## Recommended Reading Path
+
+New users should begin with [Getting Started](getting-started.md), continue through [Introduction](intro/index.md) and [Installation](installation/index.md), then read [Application Overview](overview/index.md) before moving to [Basic Concepts](basics/routing.md).
+
+## Next
+
+Continue to [Getting Started](getting-started.md).

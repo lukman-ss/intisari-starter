@@ -91,7 +91,7 @@ $app->get('/status', [StatusController::class, 'index']);
 
 ## Step 4 - Run the Tests
 
-Verify the starter project by running:
+Verify the starter application by running:
 
 ```bash
 composer test
@@ -159,6 +159,6 @@ php intisari test
 
 This starter is built on top of [IntisariPHP core](https://packagist.org/packages/lukman-ss/intisari).
 
-## Next Steps
+## Next
 
-Continue with [Documentation Index](index.md).
+Continue to [Introduction](intro/index.md).

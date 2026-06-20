@@ -1,230 +1,100 @@
 # Request Lifecycle
 
-Understanding how an HTTP request flows through an IntisariPHP application helps you know where to intervene and how your code gets executed.
+An HTTP request enters the starter through one public entry point and is passed to the IntisariPHP application for routing and response handling.
 
-## Overview
-
-Every HTTP request follows the same path from browser to response. This lifecycle applies to all routes defined in `routes/web.php`.
+## Lifecycle Diagram
 
 ```text
-┌─────────────────────────────────────────────────────────────┐
-│  Browser                                                     │
-│  ↓                                                           │
-│  public/index.php          ← Front controller                │
-│  ↓                                                           │
-│  bootstrap/app.php         ← Create app, load env, config   │
-│  ↓                                                           │
-│  routes/web.php            ← Register routes                 │
-│  ↓                                                           │
-│  Middleware Pipeline       ← Process request                 │
-│  ↓                                                           │
-│  Router                      ← Match route                   │
-│  ↓                                                           │
-│  Controller or Closure     ← Execute handler                 │
-│  ↓                                                           │
-│  Response                  ← Send to browser                 │
-└─────────────────────────────────────────────────────────────┘
+Browser
+  |
+  v
+Web server document root: public/
+  |
+  v
+public/index.php
+  |
+  +--> vendor/autoload.php
+  |
+  +--> bootstrap/app.php
+          |
+          +--> create Application
+          +--> load .env when present
+          +--> load config/*.php
+          +--> register AppServiceProvider
+  |
+  +--> load routes/web.php
+  |
+  v
+Application::run()
+  |
+  +--> bootstrap and boot core service providers
+  +--> middleware pipeline, when runtime middleware is registered
+  +--> match and dispatch route handler
+  |
+  v
+HTTP response
 ```
 
-## Step 1 — Browser Sends Request
+## 1. Browser Sends an HTTP Request
 
-A user navigates to a URL or submits a form. The browser sends an HTTP request to your server.
+The browser sends a request containing an HTTP method, URI, headers, and optional body.
 
-```
-GET /users HTTP/1.1
-Host: 127.0.0.1:8000
-```
+## 2. Web Server Uses `public/` as the Web Root
 
-## Step 2 — Request Enters Front Controller
+The web server document root must point to `public/`. Requests are directed to `public/index.php`, the starter's front controller.
 
-All web requests enter through `public/index.php`. This file is the single entry point configured in your web server (Nginx, Apache).
+## 3. `public/index.php` Loads the Application
+
+`public/index.php` loads Composer autoloading and requires `bootstrap/app.php`:
 
 ```php
-// public/index.php (simplified)
 require dirname(__DIR__) . '/vendor/autoload.php';
 $app = require dirname(__DIR__) . '/bootstrap/app.php';
 ```
 
-The front controller:
+## 4. `bootstrap/app.php` Creates and Configures the Application
 
-- Loads Composer autoloading
-- Bootstraps the application
-- Delegates to the router
+The bootstrap file creates an `Intisari\Application` with the project root as its base path. It also sets the application as the global instance when that API is available.
 
-## Step 3 — Bootstrap Runs
+## 5. Environment and Configuration Are Loaded
 
-`bootstrap/app.php` creates the application instance and initializes the framework:
+When `.env` exists, `bootstrap/app.php` loads it. Configuration files are then loaded from `config/`.
 
-```php
-// bootstrap/app.php (simplified)
-$app = new Application(dirname(__DIR__));
-$app->loadEnvironment($app->basePath('.env'));
-$app->loadConfiguration($app->configPath());
-$app->register(AppServiceProvider::class);
-return $app;
-```
+See [Configuration](../basics/configuration.md) for the available starter configuration.
 
-The bootstrap process:
+## 6. Service Providers Are Registered and Booted
 
-1. Creates the `Application` instance
-2. Loads environment variables from `.env`
-3. Loads configuration files from `config/`
-4. Registers service providers
+`bootstrap/app.php` explicitly registers `App\Providers\AppServiceProvider`. Later, `Application::run()` bootstraps and boots the core service providers supplied by IntisariPHP.
 
-## Step 4 — Configuration Is Loaded
+## 7. `routes/web.php` Is Loaded
 
-Configuration files in `config/` are loaded and merged with environment variables:
-
-```php
-// config/app.php
-return [
-    'name' => $env('APP_NAME', 'IntisariPHP'),
-    'env' => $env('APP_ENV', 'production'),
-    'debug' => $env('APP_DEBUG', false),
-];
-```
-
-Configuration values are cached in production for faster loading.
-
-## Step 5 — Routes Are Loaded
-
-Back in `public/index.php`, the web route file is loaded:
+Before running the application, `public/index.php` loads `routes/web.php`:
 
 ```php
 $app->loadRoutes($app->routesPath('web.php'));
 ```
 
-`routes/web.php` registers routes:
+The route file registers handlers with `$app->get(...)` and the other supported HTTP method APIs. See [Routing](../basics/routing.md).
 
-```php
-$app->get('/', [HomeController::class, 'index']);
-$app->get('/users', [UserController::class, 'index']);
-$app->post('/users', [UserController::class, 'store']);
-```
+## 8. Middleware Is Applied When Registered
 
-Routes are stored in the router but not yet matched.
-
-## Step 6 — Middleware Is Processed
-
-Middleware classes registered in `config/app.php` wrap the request handling:
-
-```php
-// config/app.php
-'middleware' => [
-    App\Middleware\ExampleMiddleware::class,
-],
-```
-
-Middleware can:
-
-- Inspect the incoming request
-- Modify the request before it reaches the controller
-- Short-circuit the request (return a response early)
-- Modify the response after the controller runs
-
-Example middleware flow:
+Conceptually, registered runtime middleware wraps routing and can inspect a request before dispatch or modify the returned response.
 
 ```text
-Request → Middleware 1 → Middleware 2 → Controller → Middleware 2 → Middleware 1 → Response
+Request -> Middleware -> Route handler -> Middleware -> Response
 ```
 
-See [Middleware](../basics/middleware.md) for creating and registering middleware.
+Only middleware added to the application's runtime middleware stack participates in this pipeline. See [Middleware](../basics/middleware.md).
 
-## Step 7 — Route Is Matched
+## 9. The Matching Route Handler Runs
 
-The router matches the incoming request method and URI to a registered route:
+The router matches the request method and URI to a registered route. The handler can be a closure or a controller method.
 
-```
-Request: GET /users
-Matches: $app->get('/users', [UserController::class, 'index']);
-```
+See [Controllers](../basics/controllers.md) for controller organization and return values.
 
-If no route matches, the router returns a 404 response.
+## 10. The Response Is Returned
 
-## Step 8 — Controller or Closure Runs
-
-The matched route's handler is executed. This can be a controller method:
-
-```php
-// app/Controllers/UserController.php
-class UserController
-{
-    public function index()
-    {
-        $users = [
-            ['id' => 1, 'name' => 'Alice'],
-            ['id' => 2, 'name' => 'Bob'],
-        ];
-        
-        return Response::json($users);
-    }
-}
-```
-
-Or a closure:
-
-```php
-$app->get('/health', function () {
-    return Response::json(['status' => 'OK']);
-});
-```
-
-Controllers can return:
-
-- Plain strings
-- `Response` objects
-- `JsonResponse` objects
-- Rendered view strings
-
-See [Controllers](../basics/controllers.md) for creating controllers.
-
-## Step 9 — Response Is Sent
-
-The handler's return value is converted to an HTTP response and sent back to the browser:
-
-```
-HTTP/1.1 200 OK
-Content-Type: application/json
-
-[{"id":1,"name":"Alice"},{"id":2,"name":"Bob"}]
-```
-
-The browser renders the response or processes the JSON data.
-
-## Complete Flow Example
-
-Let's trace a request to `GET /users`:
-
-```text
-1. Browser: GET /users HTTP/1.1
-2. public/index.php: Load autoloader, bootstrap app
-3. bootstrap/app.php: Create app, load .env, load config
-4. config/app.php: Read APP_NAME, APP_ENV, middleware list
-5. routes/web.php: Register all routes including /users
-6. Middleware: ExampleMiddleware processes request
-7. Router: Match GET /users to UserController@index
-8. UserController: Execute index() method, return JSON
-9. Response: Send HTTP 200 with JSON body to browser
-```
-
-## Console Requests
-
-CLI commands (run via `php intisari` or `composer console`) follow a different lifecycle:
-
-1. `intisari` entry point loads the application
-2. `routes/console.php` registers commands
-3. The console application parses arguments
-4. The matched command handler runs
-5. Output is printed to the terminal
-
-See [CLI Commands](../cli/index.md) for available commands.
-
-## Related Topics
-
-- [Routing](../basics/routing.md) — defining routes and parameters
-- [Controllers](../basics/controllers.md) — organizing request handlers
-- [Middleware](../basics/middleware.md) — intercepting requests and responses
-- [Configuration](../basics/configuration.md) — environment and config files
+The handler result is normalized into an HTTP response. `Application::run()` sends the response and completes the HTTP lifecycle.
 
 ## Next
 

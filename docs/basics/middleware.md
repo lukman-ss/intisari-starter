@@ -1,40 +1,63 @@
 # Middleware
 
-Middleware is code that runs before or after your route handler processes a request. It wraps around the request-response cycle, allowing you to inspect, modify, or reject requests and responses.
-
 ## What Is Middleware?
 
-Think of middleware as a series of layers that a request passes through on its way to your controller, and that a response passes through on its way back to the browser.
+Middleware is a class that can inspect an HTTP request, delegate to the next request handler, and inspect or modify the returned response.
+
+A middleware can also return a response without calling the next handler. Authentication is a possible middleware use case, but the starter does not implement authentication middleware.
+
+## `app/Middleware/` Directory
+
+Application middleware lives in `app/Middleware/` under the `App\Middleware` namespace.
 
 ```text
-Request → Middleware 1 → Middleware 2 → Controller
-                                            ↓
-Response ← Middleware 1 ← Middleware 2 ← Response
+app/Middleware/
+└── ExampleMiddleware.php
 ```
 
-Each middleware can:
+Middleware classes are application source and must not be directly web-accessible.
 
-- Inspect the incoming request
-- Modify the request before passing it to the next layer
-- Short-circuit the request and return a response early
-- Modify the response after the controller has run
+## Middleware Interface and Signature
 
-## When to Use Middleware
+The installed HTTP package defines `Lukman\Http\MiddlewareInterface`. Its verified method signature is:
 
-Middleware is ideal for cross-cutting concerns that apply to many or all routes:
+```php
+public function process(Request $request, RequestHandlerInterface $handler): Response;
+```
 
-| Use Case | Description |
-|----------|-------------|
-| Logging | Record every incoming request to a log file |
-| Authentication | Check if the user is logged in before reaching the controller |
-| Request filtering | Validate headers, IP addresses, or request format |
-| Maintenance mode | Return a maintenance page when the application is being updated |
-| CORS headers | Add cross-origin headers to responses |
-| Request timing | Measure how long a request takes to process |
+The starter does not use a `handle($request, $next)` middleware signature.
 
-## Creating Middleware
+## Configured Middleware in `config/app.php`
 
-Middleware classes live in `app/Middleware/` and use the `App\Middleware` namespace.
+The starter config lists `ExampleMiddleware`:
+
+```php
+'middleware' => [
+    App\Middleware\ExampleMiddleware::class,
+],
+```
+
+This makes the class name available as `app.middleware` in the configuration repository. In the current starter bootstrap, that config value is not automatically passed to the runtime middleware stack.
+
+## `ExampleMiddleware`
+
+`app/Middleware/ExampleMiddleware.php` delegates the request and adds an `X-Intisari` header to the response:
+
+```php
+final class ExampleMiddleware implements MiddlewareInterface
+{
+    public function process(Request $request, RequestHandlerInterface $handler): Response
+    {
+        return $handler->handle($request)->header('X-Intisari', 'starter');
+    }
+}
+```
+
+Calling `$handler->handle($request)` continues the request pipeline. The returned response is then modified before it is returned to the caller.
+
+## Creating Middleware Manually
+
+Create `app/Middleware/TraceMiddleware.php`:
 
 ```php
 <?php
@@ -48,160 +71,64 @@ use Lukman\Http\Request;
 use Lukman\Http\RequestHandlerInterface;
 use Lukman\Http\Response;
 
-final class ExampleMiddleware implements MiddlewareInterface
+final class TraceMiddleware implements MiddlewareInterface
 {
     public function process(Request $request, RequestHandlerInterface $handler): Response
     {
-        return $handler->handle($request)->header('X-Intisari', 'starter');
+        return $handler->handle($request)->header('X-Trace', 'enabled');
     }
 }
 ```
 
-This is the actual `ExampleMiddleware` included with the starter. It adds a custom header to every response.
+## Creating Middleware with the CLI
 
-### Generate with CLI
+The starter registers a working middleware generator:
 
 ```bash
-php intisari make:middleware AuthMiddleware
+php intisari make:middleware TraceMiddleware
 ```
 
-This creates a new middleware file in `app/Middleware/`.
+The command creates `app/Middleware/TraceMiddleware.php` with the verified imports, interface, and `process()` method.
 
-## Registering Middleware
+Use `--force` only when intentionally replacing an existing generated file:
 
-Middleware is registered globally in `config/app.php`:
+```bash
+php intisari make:middleware TraceMiddleware --force
+```
+
+## Runtime Registration
+
+The installed `Intisari\Application` exposes a global middleware registration method:
 
 ```php
-'middleware' => [
-    App\Middleware\ExampleMiddleware::class,
-],
+$app->middleware(App\Middleware\ExampleMiddleware::class);
 ```
 
-All registered middleware runs on every HTTP request in the order they are listed.
+Register middleware after creating the application and before handling requests. If the application uses the `app.middleware` config list, application bootstrap code must explicitly read that list and pass its entries to `$app->middleware(...)`.
 
-## Use Case Examples
+Do not assume that placing a class in `app/Middleware/` or adding it to `config/app.php` activates it automatically in the current starter.
 
-### Logging Middleware
+## Common Mistakes
 
-Record each request to a log file:
+### Using the Wrong Method Signature
 
-```php
-final class LoggingMiddleware implements MiddlewareInterface
-{
-    public function process(Request $request, RequestHandlerInterface $handler): Response
-    {
-        $method = $request->method();
-        $path = $request->path();
-        $timestamp = date('Y-m-d H:i:s');
-        
-        file_put_contents(
-            'storage/logs/access.log',
-            "[$timestamp] $method $path\n",
-            FILE_APPEND
-        );
-        
-        return $handler->handle($request);
-    }
-}
-```
+Implement `process(Request $request, RequestHandlerInterface $handler): Response`. A `handle($request, $next)` method does not satisfy the installed interface.
 
-### Authentication Check
+### Missing Interface Imports
 
-Redirect unauthenticated users to a login page:
+Import `MiddlewareInterface`, `Request`, `RequestHandlerInterface`, and `Response` from `Lukman\Http`.
 
-```php
-final class AuthMiddleware implements MiddlewareInterface
-{
-    public function process(Request $request, RequestHandlerInterface $handler): Response
-    {
-        if (!isset($_SESSION['user_id'])) {
-            return new Response('', 302, ['Location' => '/login']);
-        }
-        
-        return $handler->handle($request);
-    }
-}
-```
+### Forgetting to Delegate
 
-### Request Filtering
+Call `$handler->handle($request)` when the request should continue. Skip delegation only when intentionally returning an early response.
 
-Block requests from specific IP addresses:
+### Returning the Wrong Type
 
-```php
-final class IpFilterMiddleware implements MiddlewareInterface
-{
-    public function process(Request $request, RequestHandlerInterface $handler): Response
-    {
-        $blocked = ['192.168.1.100', '10.0.0.50'];
-        $clientIp = $_SERVER['REMOTE_ADDR'] ?? '';
-        
-        if (in_array($clientIp, $blocked, true)) {
-            return new Response('Forbidden', 403);
-        }
-        
-        return $handler->handle($request);
-    }
-}
-```
+The `process()` method must return `Lukman\Http\Response`.
 
-### Maintenance Mode
+### Assuming Config Means Active
 
-Return a maintenance page when enabled:
-
-```php
-final class MaintenanceMiddleware implements MiddlewareInterface
-{
-    public function process(Request $request, RequestHandlerInterface $handler): Response
-    {
-        if (file_exists('storage/framework/down')) {
-            return new Response(
-                '<h1>We are currently undergoing maintenance. Please try again later.</h1>',
-                503
-            );
-        }
-        
-        return $handler->handle($request);
-    }
-}
-```
-
-## Middleware Lifecycle
-
-Conceptually, middleware executes in this order:
-
-```text
-1. Browser sends request
-2. Middleware 1 receives request
-   → Can inspect or modify request
-   → Calls $handler->handle($request) to continue
-3. Middleware 2 receives request
-   → Can inspect or modify request
-   → Calls $handler->handle($request) to continue
-4. Route handler (controller or closure) executes
-5. Response flows back through Middleware 2
-   → Can modify response
-6. Response flows back through Middleware 1
-   → Can modify response
-7. Browser receives response
-```
-
-A middleware can choose to:
-
-- **Pass through** — call `$handler->handle($request)` and return its result
-- **Short-circuit** — return a response without calling the next handler
-- **Modify before** — change the request before calling the next handler
-- **Modify after** — change the response after the next handler returns
-
-## Limitations
-
-The following limitations apply to the starter's middleware system:
-
-- **Global registration only** — Middleware registered in `config/app.php` runs on every route. The starter does not document per-route middleware assignment.
-- **No middleware groups** — Grouping middleware by name (e.g., `auth`, `api`) depends on IntisariPHP core features that are not configured in the starter.
-- **Order depends on registration** — Middleware runs in the exact order listed in `config/app.php`. Reorder the array to change execution priority.
-- **No route-level middleware** — Applying middleware to individual routes depends on IntisariPHP core router features.
-
-For advanced middleware features (per-route assignment, middleware groups, middleware parameters), refer to the IntisariPHP core documentation.
+The current `config/app.php` list is not wired automatically by `bootstrap/app.php`. Confirm runtime registration before expecting middleware effects.
 
 ## Next
 
