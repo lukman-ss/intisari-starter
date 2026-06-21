@@ -1,6 +1,6 @@
 # Logging
 
-## Verified Starter Behavior
+## `storage/logs/`
 
 The starter includes a private `storage/logs/` directory and preserves it with `.gitkeep`.
 

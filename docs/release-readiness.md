@@ -1,58 +1,97 @@
 # Release Readiness Checklist
 
-This document outlines the mandatory verification steps and checklist items that must be completed before tagging and publishing a new release of **IntisariPHP Starter** (e.g. `lukman-ss/intisari-starter`).
+Complete this checklist before tagging a new IntisariPHP Starter release. This page does not create or publish a release.
 
----
+## Composer and Test Checks
 
-## 1. Automated Quality Checks
+- [ ] Validate Composer metadata:
 
-Run the following commands locally to verify codebase health and integrity:
-
-* **Validate composer.json**: Ensure the composer config is valid.
   ```bash
   composer validate --strict
   ```
-* **Dependency Check**: Re-install dependencies and ensure everything builds correctly.
+
+- [ ] Install the versions recorded in `composer.lock`:
+
   ```bash
   composer install
   ```
-* **Run Tests**: Execute all unit and feature tests to ensure no regressions.
+
+- [ ] Regenerate Composer autoload files:
+
+  ```bash
+  composer dump-autoload
+  ```
+
+- [ ] Run the complete test suite:
+
   ```bash
   composer test
   ```
-* **Documentation Quality Check**: If available, run the documentation validator to verify H1 count, empty code blocks, and internal relative links.
+
+- [ ] Run the Markdown quality checker:
+
   ```bash
   composer docs:check
   ```
 
----
+## Intisari CLI Checks
 
-## 2. Documentation & Links Check
+- [ ] Confirm application information renders:
 
-* **README Links**: Review [README.md](../README.md) and verify all links are correct, functional, and point to the right sections or files.
-* **Docs Links**: Verify all internal relative links in the `docs/` directory. Ensure that [docs/index.md](index.md) links to every main documentation page.
-* **No Unsupported Feature Claims**: Ensure documentation does not claim support for features not present in the current starter or core (e.g., automatic JSON response helpers, ORM, queues, CSRF middleware unless explicitly implemented).
-* **No Broken Security Examples**: Verify that code samples illustrating security, escaping (using the `$e()` view helper or `htmlspecialchars`), and input validation are accurate and safe to copy.
-* **Public Root Warning**: Check that the deployment and security documentation contains clear, highlighted warnings instructing users to set the web server document root to `public/` and never to the project root.
+  ```bash
+  php intisari about
+  ```
 
----
+- [ ] Confirm the expected environment renders:
 
-## 3. Configuration & CLI Verification
+  ```bash
+  php intisari env
+  ```
 
-* **`.env.example` Consistency**: Check that any new configuration options introduced in `config/*.php` are also declared in [`.env.example`](../.env.example) with safe default values.
-* **Route List CLI Check**: Run the route listing command to ensure there are no syntax or runtime errors during boot:
+- [ ] Confirm `/`, `/health`, and `/status` appear in the route list:
+
   ```bash
   php intisari route:list
   ```
-* **CLI Generator Smoke Test**: Run the generator commands (e.g., generating controllers) to verify that generated templates are syntax-valid and correctly registered.
 
----
+- [ ] Confirm both config commands complete and leave no stale cache:
 
-## 4. Release Registry & Versioning
-
-* **CHANGELOG**: If a `CHANGELOG.md` file exists in the project root, update it with the release date, version, and bullet points detailing the added features, fixed bugs, and breaking changes.
-* **Git Tagging Format**: Recommend tagging releases using semantic versioning. Use the standard prefix `v` followed by major, minor, and patch version numbers:
   ```bash
-  git tag -a v1.0.0 -m "Release version 1.0.0"
-  git push origin v1.0.0
+  php intisari config:cache
+  php intisari config:clear
   ```
+
+  The current bootstrap does not load the generated cache file; this check verifies command behavior only.
+
+## Generator Smoke Tests
+
+- [ ] Run `make:controller`, `make:middleware`, `make:provider`, and `make:command` in a disposable project copy or with unique temporary class names.
+- [ ] Confirm each generated path, namespace, class name, and PHP syntax.
+- [ ] Confirm existing files are preserved without `--force`.
+- [ ] Confirm `--force` replaces files only when explicitly supplied.
+- [ ] Remove every generated smoke-test file and empty generated directory.
+
+Automated generator coverage should also pass through `composer test`.
+
+## Documentation Checks
+
+- [ ] Verify every relative link in [`README.md`](../README.md).
+- [ ] Verify every documentation link and `Next` link; `composer docs:check` must pass.
+- [ ] Confirm [`docs/index.md`](index.md) links to every main documentation page.
+- [ ] Confirm route examples match [`routes/web.php`](../routes/web.php).
+- [ ] Confirm CLI commands and options match [`routes/console.php`](../routes/console.php).
+- [ ] Confirm environment variables in [`.env.example`](../.env.example) match `config/*.php` usage and contain safe defaults.
+- [ ] Confirm no unsupported feature is presented as available; uncertain runtime behavior must be marked core-dependent or planned.
+- [ ] Confirm security examples render correctly and use valid escaping, input validation, and secret-handling patterns.
+- [ ] Confirm deployment and security docs state that `public/` is the document root and the project root must remain private.
+
+## Release Metadata
+
+- [ ] Update [`CHANGELOG.md`](../CHANGELOG.md) with factual Unreleased entries for the release scope.
+- [ ] Confirm the intended version follows semantic versioning.
+- [ ] Use the recommended tag format `vMAJOR.MINOR.PATCH`, such as `v1.2.3`.
+- [ ] Review the final diff and working tree before creating the tag outside this checklist.
+
+## Next
+
+Return to the [Documentation Index](index.md).

@@ -10,6 +10,7 @@ This reference describes the paths included in IntisariPHP Starter and when they
 | `app/Controllers/` | Contains HTTP route handlers. | `HomeController.php`, `StatusController.php` | Edit or add controllers when handling new requests. | No |
 | `app/Middleware/` | Contains middleware classes implementing the HTTP middleware contract. | `ExampleMiddleware.php` | Edit or add middleware when request or response processing needs an additional layer. | No |
 | `app/Providers/` | Contains application service providers. | `AppServiceProvider.php` | Edit when registering or bootstrapping application services. | No |
+| `app/Commands/` | Contains application console command classes when generated. | Files created by `php intisari make:command` | Edit when implementing generated project commands. | No |
 | `bootstrap/` | Creates the application instance and loads environment, configuration, and the application provider. | `app.php` | Change only when application startup wiring must change. | No |
 | `config/` | Contains PHP files that return configuration arrays. | `app.php`, `database.php`, `session.php` | Edit when adding or changing application configuration defaults. | No |
 | `database/` | Holds local database files when the application uses a file-based database. | `.gitkeep`, optional `database.sqlite` | Edit or populate when using SQLite locally. | No |
@@ -17,6 +18,7 @@ This reference describes the paths included in IntisariPHP Starter and when they
 | `public/` | Contains the front controller and public web-server configuration. This is the web root. | `index.php`, `.htaccess` | Edit only for public entry-point or web-server concerns. | Yes |
 | `resources/views/` | Contains PHP view templates, layouts, partials, and error-page examples. | `home.php`, `layouts/app.php`, `partials/header.php`, `errors/` | Edit when changing rendered HTML. | No |
 | `routes/` | Contains HTTP route and console command registration. | `web.php`, `console.php` | Edit when adding routes or project CLI commands. | No |
+| `scripts/` | Contains repository maintenance scripts. | `check-docs.php`, `test-regex.php` | Edit when project-level checks change. | No |
 | `storage/` | Holds writable runtime data. It must remain outside the public web root. | `cache/`, `logs/`, `framework/` | Usually not edited as source; ensure required directories exist and are writable. | No |
 | `tests/` | Contains PHPUnit tests and test support classes under the `Tests\` namespace. | `TestCase.php`, `Unit/`, `Feature/`, application tests | Edit when application behavior or project contracts change. | No |
 
@@ -31,7 +33,7 @@ This reference describes the paths included in IntisariPHP Starter and when they
 
 ## Generated Commands Directory
 
-The fresh starter does not contain `app/Commands/`. Running the following command creates the directory when needed:
+Running the following command creates `app/Commands/` when it is not already present and writes the command class:
 
 ```bash
 php intisari make:command SendEmailCommand

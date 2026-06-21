@@ -1,12 +1,12 @@
 # IntisariPHP Starter Documentation
 
-IntisariPHP Starter is a minimal project skeleton for building PHP web applications. It provides the application directories, entry points, configuration, routes, views, CLI commands, and test setup used by a new project.
+IntisariPHP Starter is a minimal project skeleton for building PHP web applications. It provides the application structure, bootstrap, configuration, routes, views, CLI entry point, and PHPUnit setup.
 
-## Starter and Core
+## IntisariPHP Starter and IntisariPHP core
 
-**IntisariPHP Starter** is the project you install and modify. It contains your application code, configuration, routes, views, storage directories, and tests.
+IntisariPHP Starter is the project you install and modify. It contains your application code and project-level configuration.
 
-**IntisariPHP core** is the `lukman-ss/intisari` Composer dependency. It provides the framework runtime used by the starter and is installed under `vendor/`.
+IntisariPHP core is the `lukman-ss/intisari` Composer dependency. It provides the framework runtime used by the application. See [IntisariPHP Starter vs. IntisariPHP core](overview/starter-vs-core.md) for the ownership boundary.
 
 ## Quick Start
 
@@ -15,8 +15,13 @@ composer create-project lukman-ss/intisari-starter my-app
 cd my-app
 cp .env.example .env
 composer serve
-composer test
 ```
+
+Open `http://127.0.0.1:8000` after the development server starts.
+
+## Recommended Reading Path
+
+Begin with [Getting Started](getting-started.md), check the [Requirements](intro/requirements.md), complete [Installation](installation/index.md), then review the [Application Overview](overview/index.md) and [Basic Concepts](basics/routing.md).
 
 ## Documentation Map
 
@@ -24,20 +29,21 @@ composer test
 
 - [Introduction](intro/index.md)
 - [Requirements](intro/requirements.md)
+- [Getting Started](getting-started.md)
 
 ### Installation
 
-- [Installation Overview](installation/index.md)
+- [Installation](installation/index.md)
 - [Composer Installation](installation/composer.md)
 - [Running the Application](installation/running.md)
-- [Installation Troubleshooting](installation/troubleshooting.md)
+- [Troubleshooting](installation/troubleshooting.md)
 
 ### Application Overview
 
-- [Application Overview](overview/index.md)
+- [Overview](overview/index.md)
 - [Application Structure](overview/application-structure.md)
 - [Request Lifecycle](overview/request-lifecycle.md)
-- [Starter vs. Core](overview/starter-vs-core.md)
+- [IntisariPHP Starter vs. IntisariPHP core](overview/starter-vs-core.md)
 
 ### Basic Concepts
 
@@ -55,7 +61,7 @@ composer test
 
 ### Command Line
 
-- [Command Line Usage](cli/index.md)
+- [Command Line](cli/index.md)
 
 ### Testing
 
@@ -69,18 +75,14 @@ composer test
 
 - [Security](security/index.md)
 
-### Release Management
-
-- [Release Readiness Checklist](release-readiness.md)
-
 ### Tutorials
 
 - [Build Your First App](tutorials/build-your-first-app.md)
 - [REST API Basics](tutorials/rest-api.md)
 
-## Recommended Reading Path
+### Release Readiness
 
-New users should begin with [Getting Started](getting-started.md), continue through [Introduction](intro/index.md) and [Installation](installation/index.md), then read [Application Overview](overview/index.md) before moving to [Basic Concepts](basics/routing.md).
+- [Release Readiness Checklist](release-readiness.md)
 
 ## Next
 

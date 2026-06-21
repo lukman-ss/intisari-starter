@@ -1,48 +1,43 @@
 # Instructions for AI Coding Agents
 
-This repository is designed to be easily and safely editable by autonomous AI agents. Please follow these guidelines and technical boundaries when making changes to the codebase or documentation.
+## Project Overview
 
----
+`intisari-starter` is the lightweight application template for IntisariPHP. Application code, routes, configuration, views, documentation, CLI commands, and tests belong here. Reusable framework runtime behavior belongs in the installed `lukman-ss/intisari` packages.
 
-## 1. Project Overview & Scope
+Keep the starter small. Prefer targeted changes and existing project patterns over new dependencies or abstractions.
 
-* **Purpose**: `intisari-starter` is a minimal, lightweight project template for bootstrapping web applications. It must remain small, fast, and free of heavy dependencies or unnecessary abstractions.
-* **Core Runtime**: The framework engine is located in `lukman-ss/intisari` (installed as a vendor dependency). Do not attempt to re-implement framework features inside the starter.
+## Repository Boundaries
 
----
+- Never edit `vendor/`. Composer manages that directory, and updates overwrite local changes.
+- Do not reimplement IntisariPHP core behavior in the starter.
+- Do not invent or document framework features that are absent from the starter and installed source.
+- Do not claim Laravel or CodeIgniter compatibility.
+- Keep the web document root at `public/`; never expose the project root.
 
-## 2. Strict Technical Constraints
+## Sources of Truth
 
-* **Do Not Edit `vendor/`**: Never make changes to code inside the `vendor/` directory. All core adjustments must be made in the upstream `lukman-ss/intisari` package.
-* **No Unimplemented Feature Claims**: Do not write documentation or test cases claiming features that are not natively supported by the starter or the core framework (e.g. CSRF middleware, automatic JSON helpers, database ORM, mailers, or queue managers).
-* **Language Requirements**: All code identifiers (variables, class names, functions), inline comments, and Markdown documentation files must be written in standard English.
-* **Framework Independence**: Do not mention other frameworks (such as Laravel or CodeIgniter) as dependencies.
+- `composer.json`: dependencies, autoloading, and Composer scripts.
+- `.env.example`: supported environment variables and safe example values.
+- `config/*.php`: configuration keys, defaults, and environment usage.
+- `routes/web.php`: supported HTTP route registration style and default routes.
+- `routes/console.php`: available CLI commands, arguments, options, and generators.
+- `docs/index.md`: documentation structure and navigation.
 
----
+Route examples must match `routes/web.php`. CLI documentation must match `routes/console.php`. Environment documentation must match both `.env.example` and `config/*.php`.
 
-## 3. Configuration & Entry Points (Sources of Truth)
+## Language
 
-When adding or modifying components, align with the following source of truth files:
-* **HTTP Routing**: `routes/web.php` (defines GET/POST handlers). Example routes must return a string or standard HTTP response.
-* **CLI Routing**: `routes/console.php` (defines CLI commands). CLI examples must match this console router syntax.
-* **Configuration**: Config schemas are defined under `config/*.php` (e.g. `config/database.php`). Any new configurations must also be added to `.env.example` with safe, default placeholders.
-* **Front Controller**: `public/index.php` is the web entry point. The web server document root must always point to `public/` and never the project root.
+- Write documentation in English.
+- Use English for code identifiers, filenames, comments, examples, and technical terms.
 
----
+## Required Verification
 
-## 4. Verification Checklist
+Always run these commands before finishing:
 
-Before ending your turn or committing changes, you must run:
+```bash
+composer validate --strict
+composer test
+composer docs:check
+```
 
-1. **Strict Composer Validation**:
-   ```bash
-   composer validate --strict
-   ```
-2. **Run All Tests**:
-   ```bash
-   composer test
-   ```
-3. **Run Documentation Check**: Ensure that all modified or new Markdown files under `docs/` have exactly one H1 header, contain no empty code fences, and have fully resolvable internal relative links.
-   ```bash
-   composer docs:check
-   ```
+Report failures directly. Do not describe work as complete while a required check is failing.

@@ -35,9 +35,9 @@ final class WebRoutesTest extends TestCase
 
         $routes = $app->router()->routes()->all();
 
-        $this->assertTrue($this->hasRoute($routes, 'GET', '/'));
-        $this->assertTrue($this->hasRoute($routes, 'GET', '/health'));
-        $this->assertTrue($this->hasRoute($routes, 'GET', '/status'));
+        $this->assertSame([HomeController::class, 'index'], $this->routeHandler($routes, 'GET', '/'));
+        $this->assertInstanceOf(\Closure::class, $this->routeHandler($routes, 'GET', '/health'));
+        $this->assertSame([StatusController::class, 'index'], $this->routeHandler($routes, 'GET', '/status'));
     }
 
     public function testHomeRouteReturnsOkAndWelcomeText(): void
@@ -82,6 +82,14 @@ final class WebRoutesTest extends TestCase
         $this->assertStringContainsString('Welcome to IntisariPHP', $controller->index());
     }
 
+    public function testStatusControllerReturnsExpectedContent(): void
+    {
+        $response = (new StatusController())->index();
+
+        $this->assertSame(200, $response->status());
+        $this->assertSame(['status' => 'ok'], json_decode($response->content(), true));
+    }
+
     public function testRouteListCommandWorksAndOutputsDefaultRoutes(): void
     {
         $app = require dirname(__DIR__) . '/bootstrap/app.php';
@@ -120,5 +128,25 @@ final class WebRoutesTest extends TestCase
         }
 
         return false;
+    }
+
+    /**
+     * @param array<int, object> $routes
+     */
+    private function routeHandler(array $routes, string $method, string $path): mixed
+    {
+        foreach ($routes as $route) {
+            if (
+                method_exists($route, 'methods')
+                && method_exists($route, 'path')
+                && method_exists($route, 'handler')
+                && in_array($method, $route->methods(), true)
+                && $route->path() === $path
+            ) {
+                return $route->handler();
+            }
+        }
+
+        return null;
     }
 }

@@ -1,56 +1,34 @@
 # Deployment
 
-Deploying an IntisariPHP application to production follows standard PHP deployment practices. This guide covers the essential steps to ensure a secure, high-performance, and functional production environment.
+Deploy IntisariPHP Starter as a standard PHP application. Review the target environment and application requirements before making it public.
 
 ## Production Requirements
 
-Before deploying, verify your server has:
+- PHP 8.2 or newer with the extensions required by the application and selected database driver.
+- Composer 2.x during the build or deployment step.
+- A web server configured to pass `public/index.php` to PHP-FPM.
+- Production database access when the application uses a server database.
+- Write access to the required paths under `storage/`.
+- TLS termination for public traffic.
 
-- **PHP 8.2 or newer** with required extensions (`mbstring`, `openssl`, `pdo`, `tokenizer`, `json`)
-- **Composer** installed for dependency management
-- **Web server** (Nginx or Apache) configured with PHP-FPM
-- **Database** (MySQL, PostgreSQL, or SQLite) configured and accessible
-- **Writable storage directories** for logs, cache, and sessions
-
----
-
-## Production Checklist
-
-- [ ] **Install production dependencies** — `composer install --no-dev --optimize-autoloader`
-- [ ] **Create production `.env` manually** — Do not commit `.env` to git
-- [ ] **Point document root to `public/`** — Project root must not be web-accessible
-- [ ] **Set `APP_DEBUG=false`** — Prevents security disclosures on errors
-- [ ] **Ensure `storage/` is writable** — Web server user needs write permission
-- [ ] **Secure with HTTPS** — Set SSL certificate and HTTP redirects
-- [ ] **Verify file permissions** — Restrict write access to only `storage/`
-- [ ] **Clear or configure configuration cache** — Ensure cached config matches `.env`
-
----
+The starter does not require a queue worker, scheduler, migration step, or container runtime.
 
 ## Install Production Dependencies
 
-Install only production dependencies with an optimized autoloader:
+Install versions from `composer.lock` without development packages:
 
 ```bash
 composer install --no-dev --optimize-autoloader
 ```
 
-This command:
-- Skips development dependencies (PHPUnit, testing tools).
-- Generates an optimized classmap autoloader for faster class loading.
-- Reduces the vendor directory size.
+Run this from a clean release directory. Do not run `composer update` as an unreviewed production deployment step.
 
-> [!WARNING]
-> Never run `composer install` without `--no-dev` in production. Development tools increase the server's attack surface and memory usage.
+## Production `.env`
 
----
-
-## Environment Configuration
-
-Create `.env` **manually on the production server**. Do not copy your local `.env` file — production values must be different from development.
+Create `.env` on the target environment with production-specific values. Do not commit it or copy local credentials unchanged.
 
 ```env
-APP_NAME="Your App Name"
+APP_NAME="My Application"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://example.com
@@ -60,235 +38,138 @@ APP_LOCALE=en
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_DATABASE=your_database
+DB_DATABASE=app_database
 DB_USERNAME=app_user
-DB_PASSWORD=strong_secure_password
+DB_PASSWORD=replace-with-a-secret
+DB_CHARSET=utf8mb4
 
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
 ```
 
-### Critical Production Settings
+Use only variables read by the starter config files. Restrict access to `.env` and provide the database user only the privileges the application needs.
 
-* **`APP_DEBUG=false`**: This is the most important setting. Debug mode exposes stack traces, environment variables, and sensitive data to users, which is a critical security vulnerability.
-* **`APP_URL`**: Must match your production domain exactly, including the protocol (`https://`).
-* **Database credentials**: Use strong passwords and a dedicated database user with minimal privileges.
+## Disable Debug Output
 
----
+Production configuration must contain:
 
-## Configuration Caching
+```env
+APP_ENV=production
+APP_DEBUG=false
+```
 
-The CLI utility provides a command to compile and cache configurations:
+The current bootstrap loads `app.debug` but does not automatically pass it to the core exception handler, whose default is non-debug. Keep `APP_DEBUG=false` and never add public stack traces, exception messages, credentials, or filesystem paths as a diagnostic shortcut.
+
+## Use `public/` as the Document Root
+
+The web server document root must be the absolute `public/` directory:
+
+```text
+/var/www/my-app/public
+```
+
+Never serve the project root. `.env`, `config/`, `storage/`, `vendor/`, source code, tests, and documentation must not be directly web-accessible.
+
+## Keep `storage/` Writable and Private
+
+Create the runtime directories and grant the PHP-FPM user the minimum required write access:
+
+```bash
+mkdir -p storage/cache storage/logs storage/framework
+chown -R www-data:www-data storage
+chmod -R 775 storage
+```
+
+Adjust the user, group, and permission mode for the hosting environment. Do not make the whole project writable. `storage/` must remain outside the document root.
+
+## Config Cache
+
+The commands are available:
 
 ```bash
 php intisari config:cache
-```
-
-This compiles your application configuration files into a single array cache file at `storage/cache/config.php`.
-
-> [!IMPORTANT]
-> By default, the `bootstrap/app.php` file in the starter loads configuration directly from the config directory files (e.g. `config/*.php`). It does **not** automatically read from the compiled `storage/cache/config.php` file.
-> 
-> If you wish to enable configuration caching, you must manually update your [bootstrap/app.php](file:///d:/PHP%20PACKAGIST/intisari-starter/bootstrap/app.php) to load the cache if it exists, for example:
->
-> ```php
-> $cacheFile = $app->storagePath('cache/config.php');
-> if (is_file($cacheFile)) {
->     $app->config()->loadCache($cacheFile);
-> } else {
->     $app->loadConfiguration($app->configPath());
-> }
-> ```
-> 
-> Otherwise, running `config:cache` will write the cache file but it will not be loaded during HTTP or CLI bootstrapping.
-
-Clear the cache whenever you change environment values:
-
-```bash
 php intisari config:clear
 ```
 
----
+`config:cache` writes `storage/cache/config.php`, and `config:clear` removes it. The current `bootstrap/app.php` loads `config/` directly and does not read the generated cache.
 
-## Web Server Document Root
+Do not treat this cache as an active production optimization unless bootstrap loading is deliberately implemented and tested.
 
-**The document root must point to `public/`, never the project root.**
+## Nginx and PHP-FPM Example
 
-```text
-/path/to/app/public    ← CORRECT
-/path/to/app           ← WRONG (exposes sensitive files)
-```
-
-The `public/` directory contains only `index.php` and static assets. The project root contains `.env`, `config/`, `storage/`, and other sensitive files that must never be accessible via the web.
-
----
-
-## Web Server Configurations
-
-### Nginx + PHP-FPM Configuration
+Replace the domain, project path, and PHP-FPM socket with values for the server:
 
 ```nginx
 server {
     listen 80;
     server_name example.com;
-    return 301 https://$host$request_uri;
-}
 
-server {
-    listen 443 ssl http2;
-    server_name example.com;
-
-    ssl_certificate /etc/ssl/certs/example.com.crt;
-    ssl_certificate_key /etc/ssl/private/example.com.key;
-
-    # Document root MUST point to public/
     root /var/www/my-app/public;
-    index index.php index.html;
+    index index.php;
 
-    # Handle all requests through front controller
     location / {
         try_files $uri $uri/ /index.php?$query_string;
     }
 
-    # Pass PHP files to PHP-FPM
-    location ~ \.php$ {
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+    location ~ ^/index\.php(/|$) {
         include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        internal;
     }
 
-    # Deny access to hidden files (.env, .git, etc.)
-    location ~ /\.(?!well-known).* {
+    location ~ \.php$ {
+        return 404;
+    }
+
+    location ~ /\. {
         deny all;
     }
 }
 ```
 
-### Apache Configuration
+Validate Nginx configuration before reloading it. Confirm `/`, `/health`, and `/status` through the deployed hostname.
 
-The starter includes a `public/.htaccess` file in the [public/](file:///d:/PHP%20PACKAGIST/intisari-starter/public/) directory to automatically route requests to `index.php` using `mod_rewrite`:
+## HTTPS
 
-```apache
-<IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^ index.php [L]
-</IfModule>
-```
+Use a valid certificate and redirect HTTP traffic to HTTPS at Nginx, a reverse proxy, or the hosting platform. Set `APP_URL` to the public HTTPS URL. Certificate issuance and renewal are deployment-environment responsibilities.
 
-Make sure the Apache host configuration has `AllowOverride All` enabled for the directory to allow `.htaccess` overrides.
+## Deployment Checklist
 
----
+- [ ] PHP version and required extensions are available.
+- [ ] Reviewed code and `composer.lock` are in the release.
+- [ ] `composer install --no-dev --optimize-autoloader` succeeds.
+- [ ] Production `.env` exists and is not public.
+- [ ] `APP_ENV=production` and `APP_DEBUG=false` are set.
+- [ ] Database credentials and connectivity are verified when used.
+- [ ] Nginx root points to the release's `public/` directory.
+- [ ] Required `storage/` paths exist, are writable, and are private.
+- [ ] Nginx and PHP-FPM configuration validates and reloads successfully.
+- [ ] HTTPS and redirects are active.
+- [ ] `/health` returns the expected response.
+- [ ] A rollback target is known before traffic is switched.
 
-## Directory Permissions
+## Rollback
 
-The `storage/` directory must be writable by the web server user (typically `www-data` or `nginx`):
+Keep the previous known-good release and its matching `composer.lock`. If verification fails, switch traffic or the release symlink back.
 
-```text
-storage/
-  ├── cache/           Configuration and data cache
-  ├── logs/            Application log files
-  └── framework/       Sessions and framework files
-```
+Run `composer install --no-dev --optimize-autoloader` in that release if needed, clear only application caches affected by the deployment, and reload PHP-FPM safely.
 
-Set permissions on Linux/macOS:
+Do not delete the previous release until the new release has been verified. Database rollback is not documented because this starter has no migration system.
 
-```bash
-# Create directories if they don't exist
-mkdir -p storage/cache storage/logs storage/framework
+## Common Mistakes
 
-# Set ownership to web server user
-sudo chown -R www-data:www-data storage/
-
-# Set permissions (writable by owner, readable/writable by group)
-sudo chmod -R 775 storage/
-```
-
-### File Write Policy
-
-| Directory | Permission | Reason |
-| :--- | :---: | :--- |
-| `storage/cache/` | Writable | Configuration and data cache |
-| `storage/logs/` | Writable | Application log files |
-| `storage/framework/` | Writable | Sessions and framework files |
-| `public/` | Read-only | Static assets and front controller |
-| `app/` | Read-only | Application source code |
-| `config/` | Read-only | Configuration files |
-| `routes/` | Read-only | Route definitions |
-| `vendor/` | Read-only | Composer dependencies |
-
-> [!WARNING]
-> Do not make the entire project directory writable. Only the folders under `storage/` need write access.
-
----
-
-## Deployment Workflow
-
-A typical deployment workflow on the server:
-
-```bash
-# 1. Pull latest code
-git pull origin main
-
-# 2. Install production dependencies
-composer install --no-dev --optimize-autoloader
-
-# 3. Verify .env exists and has production values
-grep APP_DEBUG .env  # should show APP_DEBUG=false
-
-# 4. Ensure storage is writable
-chmod -R 775 storage/
-
-# 5. Clear old configuration cache
-php intisari config:clear
-
-# 6. Restart PHP-FPM to clear OPCache
-sudo systemctl restart php8.2-fpm
-```
-
----
-
-## Rollback Workflow
-
-If a deployment fails or introduces a critical bug, execute the following rollback steps:
-
-1. **Revert the code**: Reset the branch or checkout the previous stable git commit/tag:
-   ```bash
-   git checkout <stable-tag-or-commit-hash>
-   ```
-2. **Re-install dependencies**: Run Composer to align dependencies with the reverted `composer.lock`:
-   ```bash
-   composer install --no-dev --optimize-autoloader
-   ```
-3. **Clear configuration cache**: If config files changed or caching is customized, run:
-   ```bash
-   php intisari config:clear
-   ```
-4. **Restart Services**: Restart PHP-FPM or Apache to clear PHP's OPCache and internal file caches:
-   ```bash
-   sudo systemctl restart php8.2-fpm
-   ```
-
----
-
-## Common Deployment Mistakes
-
-### Leaving `APP_DEBUG=true` in Production
-Exposes sensitive stack traces and credentials. Always verify it is set to `false`.
-
-### Pointing Document Root to Project Root
-Exposes `.env`, `config/`, and other sensitive files. Always point the web server config to `public/`.
-
-### Copying Local `.env` to Production
-Local configuration files reference local resources and tools. Always write production credentials manually in the production `.env`.
-
-### Running Composer Install without `--no-dev`
-Development dependencies increase memory usage and code footprint on the server. Always run with `--no-dev --optimize-autoloader`.
-
----
+- Serving the project root instead of `public/`.
+- Leaving `APP_DEBUG=true` or exposing exception details publicly.
+- Committing or publicly serving `.env`.
+- Running `composer update` directly in production without reviewing dependency changes.
+- Installing development dependencies in the production release.
+- Making the entire project writable instead of only required storage paths.
+- Assuming `config:cache` is loaded by the current bootstrap.
+- Using an Nginx PHP-FPM socket that does not match the installed PHP version.
+- Skipping HTTPS or deployment health checks.
+- Adding migration, queue, or scheduler steps that the starter does not implement.
 
 ## Next
 
-Continue to the [Security Documentation](../security/index.md).
+Continue to [Security](../security/index.md).

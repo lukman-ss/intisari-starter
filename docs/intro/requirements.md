@@ -1,38 +1,27 @@
 # Requirements
 
-IntisariPHP Starter requires PHP 8.2 or newer and Composer.
+IntisariPHP Starter requires PHP 8.2 or newer, Composer 2.x, and basic terminal access.
 
 ## Required Software
 
 | Software | Minimum Version | Purpose |
 | --- | --- | --- |
 | PHP | 8.2 | Application runtime |
-| Composer | 2.x recommended | Dependency management |
+| Composer | 2.x | Dependency management |
+
+## Terminal Usage
+
+Development commands run in a terminal. You should be able to change directories, run PHP and Composer, copy `.env.example` to `.env`, and stop a foreground development server. Command syntax for copying files can differ between operating systems.
 
 ## Recommended PHP Extensions
 
-The following extensions are recommended for the starter, its database configuration, and development tooling:
+- `mbstring` for multibyte string handling.
+- `openssl` for secure communication used by common PHP tooling.
+- `pdo` for database access.
+- `tokenizer` for PHP token processing used by development tools.
+- `json` for JSON encoding and decoding.
 
-| Extension | Purpose |
-| --- | --- |
-| `mbstring` | Multibyte string handling |
-| `openssl` | Secure communication used by common PHP tooling |
-| `pdo` | Database access |
-| `tokenizer` | PHP token processing used by development tools |
-| `json` | JSON encoding and decoding |
-
-Extension requirements can vary by database driver and development dependency. Composer reports any missing extension required by the installed dependency set.
-
-## Basic Terminal Usage
-
-Development tasks are run from a terminal. You should be able to:
-
-- Change directories with `cd`.
-- Run PHP and Composer commands.
-- Copy `.env.example` to `.env`.
-- Start and stop a foreground development process.
-
-PowerShell, Command Prompt, Windows Terminal, and common Unix shells can run the commands used by the starter. File-copy syntax may differ between platforms.
+Database drivers and development dependencies may require additional extensions. Composer reports missing extensions required by the installed dependency set.
 
 ## Verify the Environment
 
@@ -54,7 +43,7 @@ List enabled PHP extensions:
 php -m
 ```
 
-Confirm that PHP is at least version 8.2 and review the output for the recommended extensions.
+Confirm PHP is at least version 8.2, Composer is version 2.x, and the recommended extensions are listed.
 
 ## Next
 

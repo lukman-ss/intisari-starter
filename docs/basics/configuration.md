@@ -2,22 +2,20 @@
 
 ## `config/` Directory
 
-The starter loads PHP configuration files from `config/`. Each file returns an array and is stored under a key matching its filename.
+The starter loads PHP files from `config/`. Each file returns an array stored under a key matching its filename:
 
 ```text
 config/
-├── app.php
-├── database.php
-└── session.php
+|-- app.php
+|-- database.php
+`-- session.php
 ```
 
-For example, values returned by `config/app.php` are available under the `app` configuration key.
+For example, `config/app.php` provides values under the `app` configuration key.
 
-## `.env` File
+## `.env`
 
-The `.env` file contains values that vary between environments. `bootstrap/app.php` loads it when the file exists, before loading the configuration directory.
-
-Create the local file from the template:
+`bootstrap/app.php` loads `.env` when the file exists, before it loads `config/`. Create it from the committed template:
 
 ```bash
 cp .env.example .env
@@ -29,88 +27,65 @@ On Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-Do not commit `.env`. It may contain credentials and machine-specific settings.
+Keep `.env` out of version control because it can contain credentials and machine-specific values.
 
 ## `.env.example`
 
-`.env.example` documents every environment variable read by the starter configuration files. Keep example values safe and update the template whenever config files add or remove a variable.
-
-The default local connection remains SQLite. Server database values are present for MySQL or PostgreSQL and are unused while `DB_CONNECTION=sqlite`.
+`.env.example` lists the environment variables used by the starter config files. Keep its values safe and update it whenever those files add or remove a variable.
 
 ## Application Configuration
 
-`config/app.php` reads these variables:
+`config/app.php` reads:
 
-| Variable | Default | Configuration value |
+| Variable | Default | Purpose |
 | --- | --- | --- |
 | `APP_NAME` | `Intisari App` | Application name |
 | `APP_ENV` | `local` | Environment name |
-| `APP_DEBUG` | `true` | Debug configuration flag |
+| `APP_DEBUG` | `true` | Debug flag converted to boolean |
 | `APP_URL` | `http://127.0.0.1:8000` | Application URL |
 | `APP_TIMEZONE` | `Asia/Jakarta` | Application timezone setting |
 | `APP_LOCALE` | `en` | Application locale setting |
 
-The same file also returns `providers` and `middleware` arrays. In the current starter bootstrap, those arrays are configuration values and are not automatically registered at runtime.
+The file also defines provider and middleware class lists. The current bootstrap registers `AppServiceProvider` directly and does not automatically consume those lists.
 
 ## Database Configuration
 
-`config/database.php` defines SQLite, MySQL, and PostgreSQL connection arrays.
+`config/database.php` defines `sqlite`, `mysql`, and `pgsql` connection arrays.
 
-### SQLite
-
-SQLite is the default local connection and uses only:
+SQLite uses:
 
 ```env
 DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-`DB_DATABASE` is a filesystem path for SQLite.
+MySQL and PostgreSQL also use these supported variables:
 
-### MySQL
+| Variable | MySQL default | PostgreSQL default |
+| --- | --- | --- |
+| `DB_HOST` | `127.0.0.1` | `127.0.0.1` |
+| `DB_PORT` | `3306` | `5432` |
+| `DB_DATABASE` | `intisari` | `intisari` |
+| `DB_USERNAME` | `root` | `postgres` |
+| `DB_PASSWORD` | empty | empty |
+| `DB_CHARSET` | `utf8mb4` | `utf8` |
 
-Use the server database variables when selecting MySQL:
-
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=intisari
-DB_USERNAME=root
-DB_PASSWORD=
-DB_CHARSET=utf8mb4
-```
-
-### PostgreSQL
-
-Set values appropriate for PostgreSQL when selecting `pgsql`:
-
-```env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=intisari
-DB_USERNAME=postgres
-DB_PASSWORD=
-DB_CHARSET=utf8
-```
-
-The server database variables are not required for SQLite.
+Set `DB_CONNECTION=mysql` or `DB_CONNECTION=pgsql` before using server database values. Host, port, username, password, and charset are not used by the SQLite connection array.
 
 ## Session Configuration
 
-`config/session.php` exists and is read by the core session service provider. It uses:
+`config/session.php` reads:
 
-| Variable | Default | Purpose |
+| Variable | Default | Configured value |
 | --- | --- | --- |
-| `SESSION_DRIVER` | `file` | Session storage driver |
-| `SESSION_LIFETIME` | `120` | Session lifetime in minutes |
+| `SESSION_DRIVER` | `file` | Session storage driver name |
+| `SESSION_LIFETIME` | `120` | Integer session lifetime |
 
-The file driver stores session data under `storage/framework/sessions`. Keep this path writable and outside the public web root.
+It also defines `storage/framework/sessions` as the file path. These values are core-dependent configuration: the starter reserves and exposes them, while actual session behavior depends on the installed session integration. Keep the storage path writable and outside `public/`.
 
-## Local and Production Configuration
+## Local vs. Production
 
-Local development defaults:
+A typical local configuration uses:
 
 ```env
 APP_ENV=local
@@ -120,7 +95,7 @@ DB_CONNECTION=sqlite
 DB_DATABASE=database/database.sqlite
 ```
 
-Production values must be set for the deployed environment:
+For production, set environment-specific values, use real database credentials where required, and disable detailed debugging:
 
 ```env
 APP_ENV=production
@@ -128,46 +103,31 @@ APP_DEBUG=false
 APP_URL=https://example.com
 ```
 
-Use production-specific database credentials and never commit them. Keep `APP_TIMEZONE=Asia/Jakarta` unless the application intentionally uses another timezone setting.
+Do not commit production credentials. The web server must expose only `public/`.
 
-## Configuration Cache Command
+## Config Cache
 
-The starter registers these commands:
+The starter provides:
 
 ```bash
 php intisari config:cache
 php intisari config:clear
 ```
 
-`config:cache` writes the loaded configuration to `storage/cache/config.php`. `config:clear` removes that file.
+`config:cache` loads `config/` and writes `storage/cache/config.php`. `config:clear` removes that file.
 
-The current `bootstrap/app.php` loads the `config/` directory directly and does not read `storage/cache/config.php`. Treat the cache command as available tooling, not as an active runtime optimization, until bootstrap cache loading is implemented.
+The current `bootstrap/app.php` still loads the `config/` directory directly and does not read the generated cache file. The commands are available, but the cache is not an active bootstrap optimization in this starter.
 
 ## Common Mistakes
 
-### Missing `.env`
-
-Copy `.env.example` to `.env` before customizing local values.
-
-### Committing Secrets
-
-Commit `.env.example`, not `.env`. Do not place real database passwords in documentation or committed configuration.
-
-### Using Server Variables for SQLite
-
-SQLite uses `DB_CONNECTION` and `DB_DATABASE`. Host, port, username, password, and charset settings apply to MySQL or PostgreSQL.
-
-### Wrong Database Port or Charset
-
-Update `DB_PORT`, `DB_USERNAME`, and `DB_CHARSET` when switching between MySQL and PostgreSQL. Values copied for one server are not automatically changed for another.
-
-### Assuming Config Arrays Are Runtime Registration
-
-The current bootstrap explicitly registers `AppServiceProvider`; it does not automatically consume the `providers` or `middleware` arrays from `config/app.php`.
-
-### Assuming the Cache Is Loaded
-
-Creating `storage/cache/config.php` does not change the current bootstrap loading path. Clear stale cache files when reviewing configuration behavior.
+- Customizing `.env.example` instead of creating a local `.env`.
+- Committing `.env` or real credentials.
+- Adding an environment variable without reading it in a config file.
+- Using MySQL or PostgreSQL host settings while `DB_CONNECTION=sqlite`.
+- Reusing the wrong port or charset when changing database drivers.
+- Assuming provider or middleware arrays are automatically registered.
+- Assuming `SESSION_DRIVER` guarantees a driver is active without the required core integration.
+- Assuming `config:cache` changes the current bootstrap loading path.
 
 ## Next
 

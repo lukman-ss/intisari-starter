@@ -3,131 +3,118 @@
 declare(strict_types=1);
 
 $projectRoot = realpath(dirname(__DIR__));
-$docsDir = $projectRoot . DIRECTORY_SEPARATOR . 'docs';
 
-$filesToCheck = [];
-$filesToCheck[] = $projectRoot . DIRECTORY_SEPARATOR . 'README.md';
-
-if (is_dir($docsDir)) {
-    $directoryIterator = new RecursiveDirectoryIterator($docsDir);
-    $iterator = new RecursiveIteratorIterator($directoryIterator);
-    foreach ($iterator as $file) {
-        if ($file->isFile() && $file->getExtension() === 'md') {
-            $filesToCheck[] = $file->getRealPath();
-        }
-    }
+if ($projectRoot === false) {
+    fwrite(STDERR, "Unable to resolve project root.\n");
+    exit(1);
 }
 
+$excludedDirectories = ['.git', 'node_modules', 'vendor'];
+$directory = new RecursiveDirectoryIterator($projectRoot, FilesystemIterator::SKIP_DOTS);
+$filter = new RecursiveCallbackFilterIterator(
+    $directory,
+    static function (SplFileInfo $item) use ($excludedDirectories): bool {
+        return !$item->isDir() || !in_array($item->getFilename(), $excludedDirectories, true);
+    }
+);
+
+$files = [];
+$iterator = new RecursiveIteratorIterator($filter);
+foreach ($iterator as $file) {
+    if ($file->isFile() && strtolower($file->getExtension()) === 'md') {
+        $files[] = $file->getPathname();
+    }
+}
+sort($files);
+
 $errors = [];
+$forbiddenClaims = [
+    '/\b(?:supports|provides|includes|implements|offers)\s+(?:an?\s+)?(?:built-in\s+)?(?:authentication|authorization|csrf|orm|queues?|scheduler|mail)\b/i',
+    '/\b(?:laravel|codeigniter|artisan)[- ]compatible\b/i',
+    '/^\s*php\s+intisari\s+(?:make:model|make:migration|migrate|db:seed|queue:\S+|schedule:\S+)\b/i',
+];
 
-foreach ($filesToCheck as $file) {
+foreach ($files as $file) {
     $content = file_get_contents($file);
-    $filename = basename($file);
-    $relativeFilePath = str_replace($projectRoot . DIRECTORY_SEPARATOR, '', $file);
-
-    // Split the content by triple backticks (```)
-    $parts = explode('```', $content);
-    
-    $evenParts = [];
-    $oddParts = [];
-    foreach ($parts as $index => $part) {
-        if ($index % 2 === 0) {
-            $evenParts[] = $part;
-        } else {
-            $oddParts[] = $part;
-        }
+    if ($content === false) {
+        $errors[] = sprintf('[%s] Unable to read file.', relativePath($projectRoot, $file));
+        continue;
     }
 
-    // 1. Check exactly one H1 per file (only outside code blocks)
+    $relativePath = relativePath($projectRoot, $file);
+    $lines = preg_split('/\R/', $content) ?: [];
+    $outsideLines = [];
     $h1Count = 0;
-    foreach ($evenParts as $part) {
-        $partLines = explode("\n", str_replace("\r\n", "\n", $part));
-        foreach ($partLines as $line) {
-            if (str_starts_with(trim($line), '# ')) {
+    $fenceCharacter = null;
+    $fenceLength = 0;
+    $fenceLine = 0;
+    $codeLines = [];
+
+    foreach ($lines as $index => $line) {
+        $lineNumber = $index + 1;
+
+        if (preg_match('/^\s*(`{3,}|~{3,})(.*)$/', $line, $matches) === 1) {
+            $marker = $matches[1];
+            $character = $marker[0];
+
+            if ($fenceCharacter === null) {
+                $language = trim($matches[2]);
+                if ($language === '') {
+                    $errors[] = sprintf('[%s:%d] Code fence must have a language identifier.', $relativePath, $lineNumber);
+                }
+
+                $fenceCharacter = $character;
+                $fenceLength = strlen($marker);
+                $fenceLine = $lineNumber;
+                $codeLines = [];
+                continue;
+            }
+
+            if ($character === $fenceCharacter && strlen($marker) >= $fenceLength && trim($matches[2]) === '') {
+                if (trim(implode("\n", $codeLines)) === '') {
+                    $errors[] = sprintf('[%s:%d] Code block must not be empty.', $relativePath, $fenceLine);
+                }
+
+                $fenceCharacter = null;
+                $fenceLength = 0;
+                $fenceLine = 0;
+                $codeLines = [];
+                continue;
+            }
+        }
+
+        if ($fenceCharacter !== null) {
+            $codeLines[] = $line;
+        } else {
+            $outsideLines[] = $line;
+            if (preg_match('/^#\s+\S/', $line) === 1) {
                 $h1Count++;
             }
         }
+
+        if (preg_match('/\b(?:core-dependent|planned)\b/i', $line) !== 1) {
+            foreach ($forbiddenClaims as $pattern) {
+                if (preg_match($pattern, $line) === 1) {
+                    $errors[] = sprintf('[%s:%d] Unsupported claim must be removed or marked core-dependent/planned.', $relativePath, $lineNumber);
+                    break;
+                }
+            }
+        }
     }
+
+    if ($fenceCharacter !== null) {
+        $errors[] = sprintf('[%s:%d] Code fence is not closed.', $relativePath, $fenceLine);
+    }
+
     if ($h1Count !== 1) {
-        $errors[] = "[{$relativeFilePath}] Must contain exactly one H1 header. Found: {$h1Count}";
+        $errors[] = sprintf('[%s] Must contain exactly one H1 heading. Found: %d.', $relativePath, $h1Count);
     }
 
-    // 2. Check no empty code blocks (only inside code blocks)
-    foreach ($oddParts as $part) {
-        $partLines = explode("\n", str_replace("\r\n", "\n", $part));
-        // Remove the first line which is the language identifier
-        array_shift($partLines);
-        $blockContent = implode("\n", $partLines);
-        if (trim($blockContent) === '') {
-            $errors[] = "[{$relativeFilePath}] Contains an empty code block.";
-        }
-    }
+    $outsideContent = implode("\n", $outsideLines);
+    preg_match_all('/!?\[[^\]]*\]\(([^)]+)\)/', $outsideContent, $linkMatches);
 
-    // 3. Extract and check links (only outside code blocks)
-    $outsideContent = implode(' ', $evenParts);
-    preg_match_all('/(?<!\!)\[([^\]]+)\]\(([^)]+)\)/', $outsideContent, $matches);
-    $links = $matches[2];
-
-    foreach ($links as $link) {
-        $anchorPos = strpos($link, '#');
-        $cleanLink = $anchorPos !== false ? substr($link, 0, $anchorPos) : $link;
-        if ($cleanLink === '') {
-            continue;
-        }
-
-        if (str_starts_with($cleanLink, 'http://') || str_starts_with($cleanLink, 'https://') || str_starts_with($cleanLink, 'mailto:')) {
-            continue;
-        }
-
-        $targetPath = '';
-        if (str_starts_with($cleanLink, 'file:///')) {
-            $decoded = rawurldecode($cleanLink);
-            $pathPart = substr($decoded, 8); // strip file:///
-            $pathPart = str_replace('/', DIRECTORY_SEPARATOR, $pathPart);
-            
-            $starterIndex = strpos($pathPart, 'intisari-starter');
-            if ($starterIndex !== false) {
-                $relativePath = substr($pathPart, $starterIndex + strlen('intisari-starter') + 1);
-                $targetPath = $projectRoot . DIRECTORY_SEPARATOR . $relativePath;
-            } else {
-                $parentDir = dirname($projectRoot);
-                $packages = ['http', 'console', 'intisari', 'validation', 'router', 'session', 'view', 'container', 'database', 'cache'];
-                $foundPkg = false;
-                foreach ($packages as $pkg) {
-                    $pkgPos = strpos($pathPart, DIRECTORY_SEPARATOR . $pkg . DIRECTORY_SEPARATOR);
-                    if ($pkgPos !== false) {
-                        $siblingRepoDir = $parentDir . DIRECTORY_SEPARATOR . $pkg;
-                        if (!is_dir($siblingRepoDir)) {
-                            // Sibling repo is not available, skip validation
-                            $foundPkg = true; 
-                            break;
-                        }
-                        $relativePath = substr($pathPart, $pkgPos + 1);
-                        $targetPath = $parentDir . DIRECTORY_SEPARATOR . $relativePath;
-                        $foundPkg = true;
-                        break;
-                    }
-                }
-                
-                if (!$foundPkg) {
-                    if (file_exists($pathPart)) {
-                        $targetPath = $pathPart;
-                    } else {
-                        continue;
-                    }
-                }
-            }
-        } else {
-            $fileDir = dirname($file);
-            $targetPath = realpath($fileDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $cleanLink));
-            if ($targetPath === false) {
-                $targetPath = $fileDir . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $cleanLink);
-            }
-        }
-
-        if ($targetPath !== '' && !file_exists($targetPath)) {
-            $errors[] = "[{$relativeFilePath}] Broken link: '{$link}' (Resolved target path not found: '{$targetPath}')";
-        }
+    foreach ($linkMatches[1] as $link) {
+        validateRelativeLink($projectRoot, $file, trim($link), $relativePath, $errors);
     }
 }
 
@@ -139,5 +126,49 @@ if ($errors !== []) {
     exit(1);
 }
 
-echo "Documentation Quality Check PASSED.\n";
+printf("Documentation Quality Check PASSED (%d Markdown files).\n", count($files));
 exit(0);
+
+function relativePath(string $projectRoot, string $path): string
+{
+    $relative = substr($path, strlen($projectRoot) + 1);
+
+    return str_replace(DIRECTORY_SEPARATOR, '/', $relative);
+}
+
+/**
+ * @param list<string> $errors
+ */
+function validateRelativeLink(
+    string $projectRoot,
+    string $sourceFile,
+    string $link,
+    string $relativeSource,
+    array &$errors,
+): void {
+    if ($link === '' || str_starts_with($link, '#')) {
+        return;
+    }
+
+    if (preg_match('/^(?:https?:|mailto:)/i', $link) === 1) {
+        return;
+    }
+
+    if (preg_match('~^(?:file:|[a-z]:[\\\\/]|[\\\\/]{2})~i', $link) === 1) {
+        $errors[] = sprintf('[%s] Link must be relative: %s', $relativeSource, $link);
+        return;
+    }
+
+    $target = rawurldecode(explode('#', $link, 2)[0]);
+    $targetPath = dirname($sourceFile) . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $target);
+
+    if (!file_exists($targetPath)) {
+        $errors[] = sprintf('[%s] Broken relative link: %s', $relativeSource, $link);
+        return;
+    }
+
+    $realTarget = realpath($targetPath);
+    if ($realTarget !== false && !str_starts_with($realTarget, $projectRoot . DIRECTORY_SEPARATOR) && $realTarget !== $projectRoot) {
+        $errors[] = sprintf('[%s] Relative link leaves the project: %s', $relativeSource, $link);
+    }
+}

@@ -9,25 +9,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ## [Unreleased]
 
 ### Added
-* Session configuration and documentation templates.
-* Support for custom console commands registered via `routes/console.php`.
-* Intisari CLI utility with management commands (`config:cache`, `config:clear`, `route:list`, and code generation commands).
-* Script `scripts/check-docs.php` to perform validation on documentation formatting, header counts, and link integrity.
-* Feature and unit tests for routes, config caching, public directory boundaries, and CLI commands.
+
+- Session configuration and documentation templates.
+- Custom console command registration through `routes/console.php`.
+- Intisari CLI commands for configuration, route listing, class generation, application information, and testing.
+- Tests for generator commands, default routes, configuration, public directory boundaries, and CLI behavior.
 
 ### Changed
-* Updated GitHub Actions workflow `.github/workflows/tests.yml` to run the documentation quality check (`composer docs:check`).
-* Added `docs:check` script execution shortcut under `composer.json`.
+
+- Reduced README content to a project summary with links to detailed documentation.
+- Reorganized documentation into introduction, installation, overview, basics, database, CLI, testing, deployment, security, and tutorial sections.
+- Hardened `AGENTS.md` and `CONTRIBUTING.md` with repository boundaries and required verification commands.
+- Updated `.github/workflows/tests.yml` to run `composer docs:check`.
 
 ### Fixed
-* Fixed false positive H1 counts and empty code fence reports in `check-docs.php` by ignoring lines inside code fences.
+
+- Removed unsupported feature claims and replaced them with verified or explicitly core-dependent behavior.
+- Corrected internal documentation links, code fences, heading structure, terminology, and output escaping examples.
+- Corrected documentation for config cache, middleware registration, debug behavior, and logging limitations.
 
 ### Documentation
-* Created comprehensive guides under `docs/` covering Routing, Controllers, Views, Middleware, Configuration, Error Handling, and Logging.
-* Added beginner-friendly tutorials for creating a first app and building a REST API.
-* Added deployment guidelines and security checklists warning against exposing the project root.
-* Created a release readiness checklist (`docs/release-readiness.md`).
-* Created a contributor guide (`CONTRIBUTING.md`).
+
+- Added user guides for routing, controllers, views, middleware, configuration, error handling, logging, database access, CLI usage, and testing.
+- Added tutorials for building a first application page and minimal JSON API endpoints.
+- Added deployment, security, release-readiness, and application architecture guidance.
+
+### Internal
+
+- Added the `docs:check` Composer script.
+- Hardened `scripts/check-docs.php` to check all repository Markdown files, relative links, H1 headings, code fences, empty blocks, and unsupported claims.
 
 ---
 

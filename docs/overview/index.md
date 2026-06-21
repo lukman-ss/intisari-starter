@@ -6,6 +6,9 @@ IntisariPHP Starter separates application code, bootstrap logic, configuration, 
 
 ```text
 app/                 Application classes
+  Controllers/       HTTP route handlers
+  Middleware/        Application middleware
+  Providers/         Application service providers
 bootstrap/           Application initialization
 config/              Application configuration
 database/            Local database files
@@ -13,6 +16,7 @@ docs/                Project documentation
 public/              Web server document root
 resources/views/     PHP view templates
 routes/               Web and console definitions
+scripts/              Project maintenance scripts
 storage/              Writable runtime data
 tests/                PHPUnit tests
 .env.example          Environment template
@@ -23,7 +27,7 @@ phpunit.xml           PHPUnit configuration
 
 ## Public and Private Paths
 
-The web server document root must point to `public/`. Application code, configuration, views, storage, tests, documentation, Composer files, and environment files must not be directly web-accessible.
+The web server document root must point to `public/`. It is the only project directory intended to be directly web-accessible. Application code, configuration, views, scripts, storage, tests, documentation, Composer files, and environment files must remain private.
 
 The `storage/` directory must be writable by the application where runtime files are used, but it must remain outside the public web root.
 
@@ -34,7 +38,7 @@ Application-owned PHP classes live under `app/`:
 - `app/Controllers/` contains HTTP request handlers.
 - `app/Middleware/` contains request and response middleware.
 - `app/Providers/` contains application service providers.
-- `app/Commands/` is created on demand by `php intisari make:command`; it is not present in a fresh starter checkout.
+- `app/Commands/` contains generated application commands. The `make:command` generator creates it when needed.
 
 ## Key Entry Points
 

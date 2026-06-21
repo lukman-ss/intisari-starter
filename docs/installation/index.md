@@ -1,8 +1,8 @@
 # Installation
 
-IntisariPHP Starter is installed via Composer's `create-project` command. The entire process takes less than five minutes.
+IntisariPHP Starter is installed through Composer. No custom installer is required.
 
-## Installation Flow
+## Recommended Path
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
@@ -12,47 +12,23 @@ composer serve
 composer test
 ```
 
-This sequence creates the project, enters its directory, creates the local environment file, starts the development server, and verifies the installation with PHPUnit.
+On Windows PowerShell, create the environment file with:
 
-## What Gets Installed
-
-When you run `composer create-project`, the following are set up automatically:
-
-- **IntisariPHP core** — the framework runtime, installed into `vendor/`
-- **Development dependencies** — PHPUnit and testing tools
-- **PSR-4 autoloading** — configured for `app/` and `tests/` namespaces
-- **Composer scripts** — `serve`, `test`, `console`
-
-## Environment Setup
-
-The `.env` file stores your local configuration values:
-
-- Application name and environment (`APP_NAME`, `APP_ENV`)
-- Debug mode (`APP_DEBUG`)
-- Application URL (`APP_URL`)
-- Database connection (`DB_*`)
-- Session settings (`SESSION_*`)
-
-**Important:** Do not commit `.env` to version control. Add it to your `.gitignore` file.
-
-## After Installation
-
-Once installation is complete, your application will be available at:
-
-```text
-http://127.0.0.1:8000
+```powershell
+Copy-Item .env.example .env
 ```
 
-The test suite should pass without errors:
+Run `composer test` after stopping the development server, or use a second terminal.
 
-```text
-OK (X tests, Y assertions)
-```
+## Local Development Assumptions
 
-## Documentation
+- PHP 8.2 or newer and Composer 2.x are available on the command line.
+- The project directory is writable.
+- Port `8000` is available, or another port is selected.
+- `.env` contains local values based on `.env.example`.
+- The default PHP development server is used only for local development.
 
-- [Composer Installation](composer.md) — detailed installation steps with platform-specific notes
-- [Running the Application](running.md) — starting the development server and running tests
+For command details, see [Composer Installation](composer.md) and [Running the Application](running.md).
 
 ## Next
 

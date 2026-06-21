@@ -1,66 +1,47 @@
 # Testing
 
-IntisariPHP Starter is pre-configured for automated testing using **PHPUnit**. 
+IntisariPHP Starter includes PHPUnit configuration, a shared application test case, and tests for project behavior.
 
 ## Running Tests
 
-You can execute the entire test suite using the Composer shortcut:
+Run all configured suites:
 
 ```bash
 composer test
 ```
 
-This runs the vendor binary `phpunit` using the configuration defined in [phpunit.xml](file:///d:/PHP%20PACKAGIST/intisari-starter/phpunit.xml).
+Run one suite, file, or matching test:
 
-To run tests matching a specific pattern:
 ```bash
-vendor/bin/phpunit --filter testName
-```
-
-To run a single test file:
-```bash
+vendor/bin/phpunit --testsuite Unit
 vendor/bin/phpunit tests/Feature/GeneratorTest.php
+vendor/bin/phpunit --filter testHealthPageReturnsOk
 ```
-
----
 
 ## PHPUnit Version
 
-The project is configured for **PHPUnit 10.x** (defined in [composer.json](file:///d:/PHP%20PACKAGIST/intisari-starter/composer.json) as `^10.5`). 
-
----
+[`composer.json`](../../composer.json) requires `phpunit/phpunit` with `^10.5`. [`phpunit.xml`](../../phpunit.xml) loads `vendor/autoload.php`, enables colors, and sets `APP_ENV=testing` and `APP_DEBUG=true` for tests.
 
 ## Test Directory Structure
 
-The structure under the [tests/](file:///d:/PHP%20PACKAGIST/intisari-starter/tests/) directory aligns with the test suites defined in [phpunit.xml](file:///d:/PHP%20PACKAGIST/intisari-starter/phpunit.xml):
-
 ```text
 tests/
-  ├── Feature/            Integration/feature tests (e.g. CLI generators)
-  ├── Unit/               Isolated component tests
-  ├── TestCase.php        Base test class containing the bootstrap helper
-  └── *.php               Root-level tests targeting application initialization, config, and routes
+|-- Unit/            Unit suite
+|-- Feature/         Feature suite
+|-- Support/         Test fixtures and support files
+|-- TestCase.php     Shared application bootstrap helper
+`-- *.php            Application suite tests
 ```
 
-### Test Suites in `phpunit.xml`
+`phpunit.xml` configures exactly three suites:
 
-Three test suites are configured:
-1. **Unit**: Runs tests located under `tests/Unit/`.
-2. **Feature**: Runs tests located under `tests/Feature/`.
-3. **Application**: Runs all root-level tests directly under `tests/` (excluding `Unit` and `Feature` subdirectories).
+- `Unit` for `tests/Unit/`.
+- `Feature` for `tests/Feature/`.
+- `Application` for `tests/`, excluding the Unit and Feature directories.
 
-To run a specific suite:
-```bash
-vendor/bin/phpunit --testsuite Unit
-vendor/bin/phpunit --testsuite Feature
-vendor/bin/phpunit --testsuite Application
-```
-
----
+`tests/TestCase.php` provides `createApplication()`, which loads `bootstrap/app.php` and `routes/web.php`.
 
 ## Writing a Simple Test
-
-You can write basic unit tests by extending the standard `PHPUnit\Framework\TestCase`.
 
 Create `tests/Unit/SampleTest.php`:
 
@@ -75,143 +56,94 @@ use PHPUnit\Framework\TestCase;
 
 final class SampleTest extends TestCase
 {
-    public function testTrueIsTrue(): void
+    public function testAddition(): void
     {
-        $this->assertTrue(true);
+        $this->assertSame(4, 2 + 2);
     }
 }
 ```
-
----
 
 ## Testing Controllers as Plain PHP Classes
 
-Since controllers in Intisari PHP are plain PHP classes, you can test them without booting the full application framework:
+Controllers can be instantiated directly when their method does not require request setup:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace Tests\Feature;
+namespace Tests\Unit;
 
-use App\Controllers\HomeController;
+use App\Controllers\StatusController;
 use PHPUnit\Framework\TestCase;
 
-final class HomeControllerTest extends TestCase
+final class StatusControllerTest extends TestCase
 {
-    public function testHomeControllerIndexReturnsString(): void
+    public function testStatusControllerReturnsOk(): void
     {
-        $controller = new HomeController();
-        $response = $controller->index();
+        $response = (new StatusController())->index();
 
-        $this->assertIsString($response);
-        $this->assertStringContainsString('Welcome to IntisariPHP', $response);
+        $this->assertSame(200, $response->status());
+        $this->assertSame(['status' => 'ok'], json_decode($response->content(), true));
     }
 }
 ```
-
----
 
 ## Testing CLI Commands
 
-You can test CLI commands by building an application instance, registering console routes, and capturing the memory output stream of the console application runner:
+Register `routes/console.php`, use the installed console input/output classes, and capture an in-memory stream:
 
 ```php
-<?php
+$app = require dirname(__DIR__) . '/bootstrap/app.php';
+require dirname(__DIR__) . '/routes/console.php';
 
-declare(strict_types=1);
+$stream = fopen('php://memory', 'w+');
+$output = new Lukman\Console\Output($stream, $stream);
+$exitCode = $app->runConsole(
+    new Lukman\Console\Input(['intisari', 'hello']),
+    $output
+);
 
-namespace Tests;
+rewind($stream);
+$content = stream_get_contents($stream);
+fclose($stream);
 
-use Lukman\Console\Input;
-use Lukman\Console\Output;
-use PHPUnit\Framework\TestCase;
-
-final class ConsoleCommandTest extends TestCase
-{
-    public function testHelloCommandExecutes(): void
-    {
-        $app = require dirname(__DIR__) . '/bootstrap/app.php';
-        require dirname(__DIR__) . '/routes/console.php';
-
-        $stream = fopen('php://memory', 'w+');
-        $output = new Output($stream, $stream);
-        $input = new Input(['intisari', 'hello']);
-
-        $exitCode = $app->runConsole($input, $output);
-
-        rewind($stream);
-        $consoleOutput = stream_get_contents($stream);
-        fclose($stream);
-
-        $this->assertSame(0, $exitCode);
-        $this->assertStringContainsString('Hello Intisari', $consoleOutput);
-    }
-}
+$this->assertSame(0, $exitCode);
+$this->assertStringContainsString('Hello Intisari', $content);
 ```
 
----
+Generator tests should use a temporary application path and clean generated files in `tearDown()`.
 
-## Testing Application Bootstrap
+## Testing Routes
 
-The starter contains tests to ensure the bootstrapping process completes without side effects and loads the correct configuration and providers:
+The installed application provides an HTTP test response helper, and the starter's `createApplication()` method loads web routes:
 
 ```php
-<?php
+$response = $this->createApplication()
+    ->test(new Lukman\Http\Request('GET', '/health'))
+    ->assertStatus(200)
+    ->assertSee('OK');
 
-declare(strict_types=1);
-
-namespace Tests;
-
-use Intisari\Application;
-use PHPUnit\Framework\TestCase;
-
-final class BootstrapVerificationTest extends TestCase
-{
-    public function testBootstrapReturnsApplicationInstance(): void
-    {
-        $app = require dirname(__DIR__) . '/bootstrap/app.php';
-
-        $this->assertInstanceOf(Application::class, $app);
-        $this->assertSame(dirname(__DIR__), $app->basePath());
-    }
-}
+$this->assertSame('OK', $response->content());
 ```
 
----
+Tests may also inspect `$app->router()->routes()->all()` or call `$app->handle(new Request(...))`, as existing application tests do. No development server is required.
 
 ## Common Failures
 
-### Class Not Found / Autoloading Errors
-* **Symptom**: `Class "Tests\..." not found`.
-* **Solution**: Ensure PSR-4 namespaces match the class structure. Run composer dump-autoload to refresh the cache:
-  ```bash
-  composer dump-autoload
-  ```
-
-### Missing Setup
-* **Symptom**: `phpunit: command not found`.
-* **Solution**: Install dependencies first before running tests:
-  ```bash
-  composer install
-  ```
-
-### Storage Folder Not Writable
-* **Symptom**: Cache or log writing fails during testing.
-* **Solution**: Make sure `storage/` directory and its subfolders are writable.
-  ```bash
-  mkdir -p storage/cache storage/logs storage/framework
-  ```
-
----
+- **PHPUnit is unavailable:** run `composer install`.
+- **Class not found:** match the `Tests\` or `App\` namespace to its PSR-4 path, then run `composer dump-autoload` when needed.
+- **Route test returns 404:** use `createApplication()` or explicitly load `routes/web.php`.
+- **CLI command is undefined:** require `routes/console.php` before `runConsole()`.
+- **Generated files remain:** use a unique temporary path and remove it during teardown.
+- **Storage write failure:** ensure the required paths under `storage/` exist and are writable.
 
 ## CI Note
 
-A GitHub Actions workflow is defined in [.github/workflows/tests.yml](file:///d:/PHP%20PACKAGIST/intisari-starter/.github/workflows/tests.yml). It executes `composer test` on every push and pull request targeting the `main` branch across PHP versions 8.2 and 8.3.
+`.github/workflows/tests.yml` runs on pushes, pull requests, and manual dispatch for PHP 8.2 and 8.3. It validates Composer metadata, installs dependencies, runs `composer test`, and runs `composer docs:check` without starting a development server.
 
----
+Keep tests portable: avoid network dependencies, fixed machine paths, and persistent generated files.
 
 ## Next
 
-Continue to the [Deployment Documentation](../deployment/index.md).
+Continue to [Deployment](../deployment/index.md).

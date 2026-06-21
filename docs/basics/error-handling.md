@@ -66,6 +66,17 @@ composer serve
 
 Reproduce the request and inspect that terminal first. PHP startup errors and uncaught process-level output appear there. If application code or server configuration writes logs, inspect the configured log destination as well.
 
+## Blank Page Troubleshooting
+
+If the browser shows no useful output:
+
+1. Confirm the development server is still running and inspect its terminal.
+2. Request `/health` to separate application startup problems from a single route or view failure.
+3. Check recently edited PHP files with `php -l path/to/file.php`.
+4. Verify `.env` exists and uses `APP_DEBUG=true` only for local work.
+5. Remember that the current bootstrap does not automatically pass `app.debug` to the exception handler, so terminal or server error output remains the reliable diagnostic source.
+6. Check storage permissions and any PHP or web-server logs configured outside the starter.
+
 ## Safe Debugging Workflow
 
 1. Reproduce the failure locally.

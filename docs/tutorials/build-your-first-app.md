@@ -1,75 +1,57 @@
 # Build Your First App
 
-This tutorial walks you through building a two-page IntisariPHP application from scratch. We will add a new "About Us" page with a custom controller, dynamic view layout extension, and a feature test to verify its behavior.
-
-No database, no authentication, and no middleware are required — just routes, controllers, views, and tests.
-
----
+This tutorial builds an `/about` page with a controller, a PHP view, a route, and a feature test. It does not require a database, authentication, or middleware.
 
 ## 1. Create Project
-
-First, create a new project using Composer:
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
 cd my-app
 ```
 
-This commands pulls down the starter application, installs all required framework packages, and sets up autoloading.
+## 2. Copy Environment File
 
----
+On macOS or Linux:
 
-## 2. Copy Env
-
-Initialize your local environment configuration file:
-
-**macOS / Linux:**
 ```bash
 cp .env.example .env
 ```
 
-**Windows PowerShell:**
+On Windows PowerShell:
+
 ```powershell
 Copy-Item .env.example .env
 ```
 
-The defaults configured in `.env` are suitable for local development.
-
----
+The example values are suitable for this local tutorial.
 
 ## 3. Run Server
-
-Start the PHP built-in development server using the Composer script:
 
 ```bash
 composer serve
 ```
 
-You should see:
-```text
-Intisari development server started
-http://127.0.0.1:8000
-```
-
----
+The local server listens on `http://127.0.0.1:8000`. Keep this terminal running and use a second terminal for later commands. Stop the server with `Ctrl+C`.
 
 ## 4. Open Default Page
 
-Open your browser and navigate to [http://127.0.0.1:8000](http://127.0.0.1:8000). You will see the default welcome screen.
-
-Let's look at [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php) to see how this page is served:
+Open `http://127.0.0.1:8000/` in a browser. The default route is registered in `routes/web.php`:
 
 ```php
 $app->get('/', [HomeController::class, 'index']);
 ```
 
-This route matches `GET /` and executes the `index` method on `HomeController`.
-
----
+This maps `GET /` to the public `index()` method on `HomeController`. The same route file also registers `/health` and `/status`.
 
 ## 5. Create Controller
 
-Let's build a new controller for our About page. Create the file `app/Controllers/AboutController.php` with the following content:
+Generate the controller:
+
+```bash
+php intisari make:controller AboutController
+```
+
+Replace the generated content in `app/Controllers/AboutController.php` with:
 
 ```php
 <?php
@@ -90,20 +72,18 @@ final class AboutController
 }
 ```
 
----
+The verified `view()` helper renders a file from `resources/views/` and returns its HTML as a string.
 
 ## 6. Register Route
 
-Next, register the route in [routes/web.php](file:///d:/PHP%20PACKAGIST/intisari-starter/routes/web.php).
-
-Open the file and import the controller at the top, then register a new `GET /about` route pointing to `AboutController@index`:
+Replace `routes/web.php` with:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-use App\Controllers\AboutController;  // 1. Import the new controller
+use App\Controllers\AboutController;
 use App\Controllers\HomeController;
 use App\Controllers\StatusController;
 use Intisari\Application;
@@ -113,48 +93,45 @@ assert($app instanceof Application);
 $app->get('/', [HomeController::class, 'index']);
 $app->get('/health', static fn (): string => 'OK');
 $app->get('/status', [StatusController::class, 'index']);
-
-// 2. Register the new route
 $app->get('/about', [AboutController::class, 'index']);
 ```
 
----
+Confirm the new route is registered:
 
-## 7. Add About Page View
+```bash
+php intisari route:list
+```
 
-IntisariPHP features a native template engine with layout extensions. Create a new view file at `resources/views/about.php`:
+## 7. Add About Page
+
+Create `resources/views/about.php`:
 
 ```php
 <?php
 
 declare(strict_types=1);
-
-// Extend the core app layout
-$extend('layouts.app');
-
-// Fill the title section
-$start('title');
-echo $e($title ?? 'About Us');
-$end();
-
-// Fill the content section
-$start('content');
 ?>
-<main>
-    <h1><?= $e($title ?? 'About Us') ?></h1>
-    <p><?= $e($description ?? 'Welcome to the about page.') ?></p>
-</main>
-<?php
-$end();
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><?= $e($title ?? 'About Us') ?></title>
+</head>
+<body>
+    <main>
+        <h1><?= $e($title ?? 'About Us') ?></h1>
+        <p><?= $e($description ?? '') ?></p>
+    </main>
+</body>
+</html>
 ```
 
-Go to [http://127.0.0.1:8000/about](http://127.0.0.1:8000/about) in your browser. You will see the new page rendered with the app layout header and your custom dynamic variables.
-
----
+The view engine provides `$e()` for escaped HTML output. Open `http://127.0.0.1:8000/about` and confirm the heading and description appear.
 
 ## 8. Add a Simple Test
 
-Let's write a test to make sure our new page is stable. Create the file `tests/Feature/AboutPageTest.php`:
+Create `tests/Feature/AboutPageTest.php`:
 
 ```php
 <?php
@@ -168,67 +145,43 @@ use Tests\TestCase;
 
 final class AboutPageTest extends TestCase
 {
-    public function testAboutPageReturns200AndExpectedContent(): void
+    public function testAboutPageReturnsExpectedContent(): void
     {
-        $app = $this->createApplication();
-        $response = $app->handle(new Request('GET', '/about'));
+        $response = $this->createApplication()->handle(
+            new Request('GET', '/about')
+        );
 
         $this->assertSame(200, $response->status());
         $this->assertStringContainsString('About Us', $response->content());
-        $this->assertStringContainsString('first IntisariPHP application', $response->content());
+        $this->assertStringContainsString(
+            'first IntisariPHP application',
+            $response->content()
+        );
     }
 }
 ```
 
----
+`createApplication()` loads the normal bootstrap and `routes/web.php`; it does not start a development server.
 
 ## 9. Run Composer Test
 
-Run the test suite using the Composer shortcut command:
+From a second terminal, or after stopping the server, run:
 
 ```bash
 composer test
 ```
 
-You will see:
-```text
-PHPUnit 10.x by Sebastian Bergmann and contributors.
+The complete suite should finish with an `OK` result.
 
-OK (136 tests, 416 assertions)
-```
+## 10. Troubleshooting
 
-Your new test has run and passed alongside the starter's default tests!
+- **Controller class not found:** confirm the file is `app/Controllers/AboutController.php`, the namespace is `App\Controllers`, and the class name matches. Run `composer dump-autoload` if needed.
+- **View not found:** confirm the file is exactly `resources/views/about.php` and the controller calls `view('about', ...)`.
+- **404 response:** confirm `$app->get('/about', ...)` is in `routes/web.php`, then run `php intisari route:list`.
+- **Blank page or 500 response:** inspect the terminal running `composer serve` and check both edited PHP files with `php -l`.
+- **Test does not discover the route:** ensure the test extends `Tests\TestCase` and calls `createApplication()`.
+- **Port 8000 is busy:** run `php intisari serve --port=8080` and open the matching URL.
 
----
+## 11. Next Steps
 
-## Troubleshooting
-
-### Class Not Found / Autoload Error
-* **Symptom**: `Class "App\Controllers\AboutController" not found`.
-* **Solution**: Ensure your namespace is `App\Controllers` (pluralized with an `s`) and that the file is located at `app/Controllers/AboutController.php` (case-sensitive). If everything looks correct, try regenerating the autoload files:
-  ```bash
-  composer dump-autoload
-  ```
-
-### View Template Not Found
-* **Symptom**: `View file [...] not found`.
-* **Solution**: Ensure the template is named exactly `about.php` (all lowercase) and resides under `resources/views/`.
-
-### Route Typo or 404
-* **Symptom**: Page displays `404 Not Found`.
-* **Solution**: Check that the route registered in `routes/web.php` exactly matches the URL path (paths are case-sensitive). Ensure the web server is running.
-
----
-
-## Next Steps
-
-Now that you have built your first page:
-- Read about [Routing](../basics/routing.md) to understand route groups and parameters.
-- Learn how [Controllers](../basics/controllers.md) manage request logic.
-- Look into [Views](../basics/views.md) to build more complex template structures.
-
----
-
-## Next
-
-Continue to the [REST API Basics Tutorial](rest-api.md).
+Continue to [REST API Basics](rest-api.md), or review [Routing](../basics/routing.md), [Controllers](../basics/controllers.md), and [Views](../basics/views.md).

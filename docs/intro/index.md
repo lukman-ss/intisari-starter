@@ -2,52 +2,42 @@
 
 ## What Is IntisariPHP Starter?
 
-IntisariPHP Starter is a minimal project skeleton for building PHP web applications. It provides the application structure, front controller, bootstrap file, routes, controllers, middleware, views, configuration, CLI entry point, storage directories, and test setup.
+IntisariPHP Starter is a minimal project skeleton for building PHP web applications. It provides application directories, bootstrap files, routes, controllers, views, configuration, a CLI entry point, storage paths, and a test setup.
 
-The starter is application code. You modify it to implement your own routes, views, and business logic.
+The starter is application-owned code. You modify it to implement your routes, views, and business logic.
 
-## What Is IntisariPHP Core?
+## What Is IntisariPHP core?
 
-IntisariPHP core is the `lukman-ss/intisari` Composer dependency used by the starter. It supplies the framework runtime and integrates the component packages used by the application.
+IntisariPHP core is the `lukman-ss/intisari` Composer dependency used by the starter. It supplies the framework runtime and connects the component packages used by the application.
 
-Core code is installed under `vendor/` and should be updated through Composer rather than edited directly.
+IntisariPHP core code is installed under `vendor/`. Update it through Composer instead of editing vendor files.
 
-## Starter vs Core
+## IntisariPHP Starter vs. IntisariPHP core
 
 | Part | Responsibility |
 | --- | --- |
-| IntisariPHP Starter | Project structure and application-owned code |
+| IntisariPHP Starter | Project structure, configuration, and application code |
 | IntisariPHP core | Framework runtime installed as a dependency |
 
-Each application has its own starter files. The core dependency is versioned separately and can be shared by multiple applications.
+The starter and core are versioned separately. Each application owns its starter files while using the installed core version.
 
 ## Design Goals
 
-- **Simple** — keep the default application easy to inspect.
-- **Lightweight** — include a small starting structure without application-specific modules.
-- **Composer-based** — install and manage dependencies through Composer.
-- **PHP 8.2+** — use a supported modern PHP baseline.
-- **Clean structure** — separate application, configuration, routes, resources, storage, and tests.
-- **CLI-friendly** — provide a project CLI for common development tasks.
-- **Testable** — include PHPUnit configuration and example tests.
+- **Lightweight** - keep the starting project small and straightforward to inspect.
+- **Composer-based** - install the starter and manage dependencies through Composer.
+- **PHP 8.2+** - use PHP 8.2 or newer as the runtime baseline.
+- **Clean structure** - separate application code, configuration, routes, resources, storage, and tests.
+- **CLI-friendly** - provide a project CLI for common local tasks and file generation.
+- **Testable** - include PHPUnit configuration and a working test structure.
+- **Minimal by default** - add application-specific capabilities only when needed.
 
 ## When to Use It
 
-Use the starter when you need:
-
-- A small PHP web application or API foundation.
-- Explicit routes, controllers, views, and configuration.
-- An application that is easy to inspect and extend.
-- Control over which application features are added.
+Use the starter for a small PHP web application or API where explicit routes, controllers, views, and configuration are useful. It is suitable when you want a compact base that can be extended deliberately.
 
 ## When Not to Use It
 
-The starter may not fit when you need:
-
-- A complete CMS or e-commerce application.
-- Built-in application modules such as authentication, queues, or scheduling.
-- A large ecosystem of first-party application packages.
-- Features that are not present in the installed IntisariPHP packages.
+The starter is not a complete CMS, e-commerce system, or prebuilt application. It may not fit projects that require application modules such as authentication, queues, or scheduling to be included by default.
 
 ## Next
 

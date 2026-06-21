@@ -6,7 +6,7 @@ IntisariPHP Starter depends on `lukman-ss/intisari`, which integrates the instal
 
 The database package uses PDO. Install the PDO driver required by the selected connection.
 
-The starter does not include an ORM or Eloquent-style model layer.
+The starter does not include an ORM or model persistence layer.
 
 ## SQLite Default
 
@@ -78,7 +78,9 @@ Store server database credentials in `.env`, not in `config/database.php` or com
 
 ## Running Queries
 
-The installed core exposes `Application::db()`, which returns a `Lukman\Database\Connection`. The connection supports parameterized `select`, `selectOne`, `statement`, and `affectingStatement` methods.
+The installed core exposes `Application::db()`, which returns a `Lukman\Database\Connection`. This is core/database-package-dependent behavior rather than code implemented by the starter.
+
+The installed connection supports parameterized `select`, `selectOne`, `statement`, and `affectingStatement` methods.
 
 Example using an application instance:
 
@@ -91,7 +93,7 @@ $users = $app->db()->select(
 
 Use bindings rather than concatenating untrusted values into SQL.
 
-The dependency also contains a query builder, but the starter does not provide a dedicated query-builder helper or application-level guide. Treat query-builder usage as database-package dependent and verify the installed package API before using it.
+The dependency also contains `Lukman\Database\QueryBuilder`, but the starter does not provide a dedicated query-builder helper or application-level wrapper. Treat query-builder usage as database-package dependent and verify the installed package version before using it.
 
 ## Migrations Status
 
@@ -133,4 +135,4 @@ Check `php intisari` for registered commands. Migration and seeding commands are
 
 ## Next
 
-Continue to [Command Line Usage](../cli/index.md).
+Continue to [Intisari CLI](../cli/index.md).

@@ -6,13 +6,20 @@ A controller is a PHP class whose public methods handle routed requests. Control
 
 ## Location and Namespace
 
-Application controllers live in `app/Controllers/` and use the `App\Controllers` namespace defined by Composer PSR-4 autoloading.
+Controllers live in `app/Controllers/` and use the Composer-autoloaded `App\Controllers` namespace.
 
 ```text
 app/Controllers/
-├── HomeController.php
-└── StatusController.php
+|-- HomeController.php
+`-- StatusController.php
 ```
+
+## Existing Controllers
+
+- `HomeController` returns the home view output when available, with a welcome string as its fallback.
+- `StatusController` returns a `Lukman\Http\Response` created with `Response::json(['status' => 'ok'])`.
+
+Neither controller extends a base controller.
 
 ## Creating a Controller Manually
 
@@ -34,19 +41,19 @@ final class ExampleController
 }
 ```
 
-The class name, filename, and namespace must match.
+The namespace, filename, and class name must match.
 
 ## Creating a Controller with the CLI
 
-The starter registers a working `make:controller` command:
+The starter provides a working generator:
 
 ```bash
 php intisari make:controller ExampleController
 ```
 
-This creates `app/Controllers/ExampleController.php`. The generated method is a skeleton; replace its placeholder return value before connecting it to a route.
+This creates `app/Controllers/ExampleController.php`. Its generated `index()` method returns `null` as a placeholder, so replace that result before routing requests to it.
 
-Use `--force` only when intentionally replacing an existing generated file:
+The command supports intentional replacement with `--force`:
 
 ```bash
 php intisari make:controller ExampleController --force
@@ -54,7 +61,7 @@ php intisari make:controller ExampleController --force
 
 ## Connecting a Controller to a Route
 
-Import the controller in `routes/web.php` and register its method through `$app`:
+Import the class in `routes/web.php` and register a public method:
 
 ```php
 use App\Controllers\ExampleController;
@@ -62,15 +69,13 @@ use App\Controllers\ExampleController;
 $app->get('/example', [ExampleController::class, 'index']);
 ```
 
-The router creates the controller class and calls the referenced public method.
+The installed handler resolver creates this controller without constructor arguments and calls `index()`.
 
-## Verified Return Values
+## Return Values Verified by Source
 
-The installed router accepts three handler return types.
+The installed router accepts `string`, `array`, or `Lukman\Http\Response` results.
 
 ### String
-
-A string becomes an HTTP response body:
 
 ```php
 public function index(): string
@@ -79,18 +84,9 @@ public function index(): string
 }
 ```
 
-Rendered views also return strings:
-
-```php
-public function index(): string
-{
-    return view('home');
-}
-```
+A string becomes the response body. The existing `HomeController` also returns rendered view output as a string when the `view` helper is available.
 
 ### Array
-
-The router converts an array to a JSON response:
 
 ```php
 public function index(): array
@@ -99,9 +95,11 @@ public function index(): array
 }
 ```
 
-### `Response`
+The installed router converts an array to a JSON response.
 
-`Lukman\Http\Response` exists in the installed HTTP package and provides `Response::json()`:
+### Response
+
+`Response::json()` exists in the installed HTTP package and is used by `StatusController`:
 
 ```php
 use Lukman\Http\Response;
@@ -112,49 +110,33 @@ public function index(): Response
 }
 ```
 
-Other return types are rejected by the router.
+Other return types are rejected by the installed router.
 
 ## Naming Conventions
 
-- Use the `Controller` suffix, such as `HomeController`.
+- Use the `Controller` suffix.
 - Match the class name to the filename.
-- Use `App\Controllers` for controllers directly under `app/Controllers/`.
-- Use short method names that describe the handled action, such as `index` or `show`.
-- Keep routed methods public.
+- Use `App\Controllers` for files directly under `app/Controllers/`.
+- Use short public action names such as `index` or `show`.
 
-These are project conventions rather than automatic resource-controller behavior.
+These are project conventions, not automatic resource-controller behavior.
 
 ## Keep Controllers Thin
 
-Controllers should coordinate request handling and produce a response. Move substantial business rules or database operations into application classes when that separation improves clarity.
+Controllers should coordinate request handling and return a supported value. Move substantial business rules or database work into application classes when that separation improves clarity.
 
-The starter does not provide `$this->validate`, `$this->users`, `$this->mailer`, or a base controller API. Do not use those members unless your application defines them.
+The starter does not provide a `BaseController` or automatic constructor dependency injection for routed controller classes.
 
 ## Common Mistakes
 
-### Wrong Namespace
-
-Use `namespace App\Controllers;`, not `App\Controller`.
-
-### Missing Route Import
-
-Add the controller `use` statement to `routes/web.php` before using `ExampleController::class`.
-
-### Class, File, or Method Mismatch
-
-Confirm that the filename matches the class and that the routed public method exists.
-
-### Unsupported Return Type
-
-Return a string, array, or `Response`. A generated controller returning `null` is only a skeleton and is not a valid routed response.
-
-### Assuming Dependency Injection
-
-The installed route resolver directly creates controller classes without constructor arguments. Constructor injection is not established by the starter's controller routing path.
-
-### Extending an Undefined Base Controller
-
-The starter does not include a `BaseController`. Use a plain class unless the application explicitly defines a base class.
+- Using `App\Controller` instead of `App\Controllers`.
+- Forgetting the controller `use` statement in `routes/web.php`.
+- Mismatching the filename, class name, or routed method.
+- Routing to a private, protected, or missing method.
+- Leaving the generated `null` placeholder in a routed controller.
+- Returning an unsupported value.
+- Extending a `BaseController` that the application has not defined.
+- Adding required constructor arguments even though the verified resolver instantiates controllers without arguments.
 
 ## Next
 

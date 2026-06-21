@@ -2,46 +2,22 @@
 
 ## What Is Middleware?
 
-Middleware is a class that can inspect an HTTP request, delegate to the next request handler, and inspect or modify the returned response.
-
-A middleware can also return a response without calling the next handler. Authentication is a possible middleware use case, but the starter does not implement authentication middleware.
+Middleware can inspect an HTTP request, delegate to the next request handler, and inspect or modify the returned response. Authentication checks, request logging, and filtering are possible use cases; the starter does not implement authentication middleware.
 
 ## `app/Middleware/` Directory
 
-Application middleware lives in `app/Middleware/` under the `App\Middleware` namespace.
+Application middleware uses the `App\Middleware` namespace and lives in:
 
 ```text
 app/Middleware/
-└── ExampleMiddleware.php
+`-- ExampleMiddleware.php
 ```
 
-Middleware classes are application source and must not be directly web-accessible.
+Middleware files are application source and must not be directly web-accessible.
 
-## Middleware Interface and Signature
+## Existing Middleware
 
-The installed HTTP package defines `Lukman\Http\MiddlewareInterface`. Its verified method signature is:
-
-```php
-public function process(Request $request, RequestHandlerInterface $handler): Response;
-```
-
-The starter does not use a `handle($request, $next)` middleware signature.
-
-## Configured Middleware in `config/app.php`
-
-The starter config lists `ExampleMiddleware`:
-
-```php
-'middleware' => [
-    App\Middleware\ExampleMiddleware::class,
-],
-```
-
-This makes the class name available as `app.middleware` in the configuration repository. In the current starter bootstrap, that config value is not automatically passed to the runtime middleware stack.
-
-## `ExampleMiddleware`
-
-`app/Middleware/ExampleMiddleware.php` delegates the request and adds an `X-Intisari` header to the response:
+`ExampleMiddleware` delegates the request and adds an `X-Intisari` response header:
 
 ```php
 final class ExampleMiddleware implements MiddlewareInterface
@@ -53,7 +29,7 @@ final class ExampleMiddleware implements MiddlewareInterface
 }
 ```
 
-Calling `$handler->handle($request)` continues the request pipeline. The returned response is then modified before it is returned to the caller.
+Calling `$handler->handle($request)` continues the pipeline.
 
 ## Creating Middleware Manually
 
@@ -82,53 +58,61 @@ final class TraceMiddleware implements MiddlewareInterface
 
 ## Creating Middleware with the CLI
 
-The starter registers a working middleware generator:
+The verified generator creates the directory and class when needed:
 
 ```bash
 php intisari make:middleware TraceMiddleware
 ```
 
-The command creates `app/Middleware/TraceMiddleware.php` with the verified imports, interface, and `process()` method.
-
-Use `--force` only when intentionally replacing an existing generated file:
+It generates the correct namespace, imports, interface, and `process()` method. Use `--force` only when intentionally overwriting the file:
 
 ```bash
 php intisari make:middleware TraceMiddleware --force
 ```
 
-## Runtime Registration
+## Middleware Signature
 
-The installed `Intisari\Application` exposes a global middleware registration method:
+The installed HTTP package defines `Lukman\Http\MiddlewareInterface` with this method:
+
+```php
+public function process(Request $request, RequestHandlerInterface $handler): Response;
+```
+
+`Request`, `RequestHandlerInterface`, and `Response` are also in the `Lukman\Http` namespace. A `handle($request, $next)` method does not implement this interface.
+
+## Registration Process
+
+`config/app.php` currently lists the example class under `middleware`:
+
+```php
+'middleware' => [
+    App\Middleware\ExampleMiddleware::class,
+],
+```
+
+The current `bootstrap/app.php` loads configuration but does not automatically pass this list to the runtime middleware stack. Register global middleware explicitly after creating the application and before handling requests:
 
 ```php
 $app->middleware(App\Middleware\ExampleMiddleware::class);
 ```
 
-Register middleware after creating the application and before handling requests. If the application uses the `app.middleware` config list, application bootstrap code must explicitly read that list and pass its entries to `$app->middleware(...)`.
-
-Do not assume that placing a class in `app/Middleware/` or adding it to `config/app.php` activates it automatically in the current starter.
+To use the configured list, bootstrap code must explicitly read it and pass its entries to the verified `$app->middleware(...)` method. Merely creating a class or adding it to `config/app.php` does not activate it in the current starter.
 
 ## Common Mistakes
 
-### Using the Wrong Method Signature
+- Using the wrong namespace or missing `Lukman\Http` imports.
+- Implementing `handle()` instead of the required `process()` signature.
+- Returning something other than `Lukman\Http\Response`.
+- Forgetting `$handler->handle($request)` when the request should continue.
+- Assuming `config/app.php` automatically activates middleware.
+- Expecting a generated class to be registered automatically.
 
-Implement `process(Request $request, RequestHandlerInterface $handler): Response`. A `handle($request, $next)` method does not satisfy the installed interface.
+## Limitations
 
-### Missing Interface Imports
-
-Import `MiddlewareInterface`, `Request`, `RequestHandlerInterface`, and `Response` from `Lukman\Http`.
-
-### Forgetting to Delegate
-
-Call `$handler->handle($request)` when the request should continue. Skip delegation only when intentionally returning an early response.
-
-### Returning the Wrong Type
-
-The `process()` method must return `Lukman\Http\Response`.
-
-### Assuming Config Means Active
-
-The current `config/app.php` list is not wired automatically by `bootstrap/app.php`. Confirm runtime registration before expecting middleware effects.
+- The starter includes only `ExampleMiddleware`; it does not include authentication middleware.
+- Middleware listed in configuration is not automatically wired by the current bootstrap.
+- The documented registration is global. This guide does not claim route-specific middleware registration.
+- Early responses are possible by returning a `Response` without delegating, but application-specific authentication or filtering logic must be implemented by the developer.
 
 ## Next
 

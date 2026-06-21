@@ -1,119 +1,116 @@
 # Contributing to IntisariPHP Starter
 
-Thank you for your interest in contributing to **IntisariPHP Starter**! This guide outlines the setup, style conventions, and guidelines for adding code, tests, documentation, and console commands.
+## Project Purpose
 
----
+IntisariPHP Starter is the lightweight application template for IntisariPHP. It contains application structure, configuration, routes, views, CLI commands, documentation, and tests. Reusable framework behavior belongs in IntisariPHP core, not this repository.
 
-## 1. Project Purpose
+## Local Setup
 
-IntisariPHP Starter is a lightweight application skeleton designed to be a clean, minimal, and secure starting point for IntisariPHP applications. It provides the directories, configurations, routing examples, front controller, and test suites.
+```bash
+git clone https://github.com/lukman-ss/intisari-starter.git
+cd intisari-starter
+composer install
+cp .env.example .env
+```
 
----
+On Windows PowerShell, copy the environment file with:
 
-## 2. Local Setup & Coding Style
+```powershell
+Copy-Item .env.example .env
+```
 
-### Local Setup
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/lukman-ss/intisari-starter.git
-   cd intisari-starter
-   ```
-2. Install local development dependencies:
-   ```bash
-   composer install
-   ```
-3. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
-4. Start the local server:
-   ```bash
-   composer serve
-   ```
+Start the local server with `composer serve` when needed.
 
-### Coding Style
-* Follow standard PSR-12 coding guidelines.
-* Ensure code, variable names, documentation, and comments are written in standard English.
-* Declare `strict_types=1` at the beginning of all PHP files.
+## Coding Style
 
----
+- Follow the existing PSR-12-compatible project style.
+- Add `declare(strict_types=1);` to PHP source files.
+- Use English for identifiers, filenames, comments, documentation, and examples.
+- Prefer focused changes and existing dependencies.
+- Do not edit `vendor/`.
 
-## 3. Core Development & CLI Commands
+## Running Tests
 
-### CLI Command Rule
-* All command-line interface utilities must be registered via [routes/console.php](routes/console.php).
-* Avoid creating complex sub-commands or third-party console dependencies. Keep commands straightforward and direct.
-
-#### How to Add Console Commands
-1. Define your command logic inside a class or closure.
-2. Register the command in [routes/console.php](routes/console.php):
-   ```php
-   $app->command('app:my-command', function ($input, $output) {
-       $output->writeln('My custom command ran successfully!');
-       return 0;
-   });
-   ```
-
----
-
-## 4. Running & Adding Tests
-
-### Test Rule
-* Never push code without verifying that all existing tests pass.
-* Write focused unit or feature tests for any new features or configurations.
-
-### Running Tests
-Run the test suite using PHPUnit:
 ```bash
 composer test
 ```
 
-### How to Add Tests
-1. Create a new test case file under the `tests/` directory (e.g. `tests/Feature/MyNewTest.php`).
-2. Extend PHPUnit's TestCase and write assertion methods:
-   ```php
-   <?php
+Run the complete suite before submitting changes.
 
-   declare(strict_types=1);
+## Running the Docs Check
 
-   namespace Tests\Feature;
+```bash
+composer docs:check
+```
 
-   use PHPUnit\Framework\TestCase;
+This checks Markdown headings, links, code fences, empty blocks, and unsupported claims.
 
-   final class MyNewTest extends TestCase
-   {
-       public function testExampleFeature(): void
-       {
-           $this->assertTrue(true);
-       }
-   }
-   ```
+## Documentation Rules
 
----
+- Use exactly one H1 per Markdown file.
+- Add a language identifier to every code fence.
+- Use relative internal links and verify every target.
+- Keep examples copy-pasteable and consistent with the current source.
+- Add new documentation pages to `docs/index.md`.
+- Use `IntisariPHP Starter`, `IntisariPHP core`, and `Intisari CLI` consistently.
 
-## 5. Documentation Rules
+## Feature Claim Rules
 
-### Documentation & Feature Claim Rules
-* **No Unsupported Claims**: Do not claim or document features that are not natively supported by the starter or the core dependency (`lukman-ss/intisari`). Examples must use verified minimal alternatives.
-* **No Unsecured Examples**: All example code must demonstrate output escaping and secure input validation. Always warn against exposing the project root and instruct pointing the web server to `public/`.
-* **Standard Naming**: Refer to the starter as **IntisariPHP Starter** and the framework core as **IntisariPHP core**.
+- Verify features against starter source and installed packages before documenting them.
+- Mark uncertain package behavior as core-dependent or planned.
+- Do not present absent commands, middleware, persistence, security, or background-processing features as available.
+- Use a verified minimal alternative when a convenience API is unavailable.
 
-### How to Add Docs
-1. Create or update your Markdown file inside `docs/` or its subdirectories.
-2. Link the new page inside [docs/index.md](docs/index.md).
-3. Run the documentation linter to verify formatting, headings, and link integrity:
-   ```bash
-   composer docs:check
-   ```
+## CLI Command Rules
 
----
+- Register application commands in [`routes/console.php`](routes/console.php).
+- Document only registered commands, arguments, and options.
+- Keep command handlers small and return an integer exit code.
+- A generated command class is not active until it is registered.
 
-## 6. Pull Request Checklist
+## Environment and Configuration Rules
 
-Before submitting a Pull Request, ensure that:
+- Treat `.env.example` and `config/*.php` as the source of truth.
+- Add safe placeholders to `.env.example` when a config file reads a new environment variable.
+- Never commit `.env` or real credentials.
+- Document only variables consumed by configuration source.
+
+## How to Add Console Commands
+
+Add a closure command to `routes/console.php`:
+
+```php
+$app->command('report:status', static function ($input, $output): int {
+    $output->writeln('Report ready');
+
+    return 0;
+}, 'Display report status');
+```
+
+Run `php intisari` to confirm registration, then add focused command tests.
+
+## How to Add Documentation
+
+1. Create or update an English Markdown file under `docs/`.
+2. Link a new page from `docs/index.md` and from a relevant `Next` section.
+3. Run `composer docs:check`.
+
+## How to Add Tests
+
+- Put isolated tests under `tests/Unit/`.
+- Put generator or application-flow tests under `tests/Feature/`.
+- Use root-level `tests/*.php` for repository and application contract checks, matching `phpunit.xml`.
+- Extend `Tests\TestCase` when the application bootstrap or web routes are required.
+- Keep generated files in a temporary path and clean them after the test.
+
+## Pull Request Checklist
+
+- [ ] The change is focused and does not edit `vendor/`.
+- [ ] Code and documentation use English and existing naming conventions.
+- [ ] Route examples match `routes/web.php`.
+- [ ] CLI documentation matches `routes/console.php`.
+- [ ] Environment documentation matches `.env.example` and `config/*.php`.
+- [ ] New behavior has appropriate tests.
 - [ ] `composer validate --strict` passes.
-- [ ] `composer test` passes without any failures.
-- [ ] `composer docs:check` passes with no H1 or link issues.
-- [ ] Code follows PSR-12 and uses `declare(strict_types=1)`.
-- [ ] No database/auth/middleware or complex dependencies are added unless requested.
-- [ ] Any configuration options in code are represented in `.env.example`.
+- [ ] `composer test` passes.
+- [ ] `composer docs:check` passes.

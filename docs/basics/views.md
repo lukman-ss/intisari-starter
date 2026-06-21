@@ -2,27 +2,25 @@
 
 ## What Is a View?
 
-A view is a PHP file that produces HTML. Views keep presentation markup separate from route and controller logic.
-
-IntisariPHP Starter uses plain PHP view files. It does not use Blade or Twig.
+A view is a plain PHP file that produces HTML. It keeps presentation markup separate from route and controller logic.
 
 ## `resources/views/` Directory
 
-The core view service searches `resources/views/` by default.
+The configured view service resolves templates from `resources/views/`:
 
 ```text
 resources/views/
-├── home.php
-├── errors/
-│   ├── 404.php
-│   └── 500.php
-├── layouts/
-│   └── app.php
-└── partials/
-    └── header.php
+|-- home.php
+|-- errors/
+|   |-- 404.php
+|   `-- 500.php
+|-- layouts/
+|   `-- app.php
+`-- partials/
+    `-- header.php
 ```
 
-Add or edit files here when changing rendered HTML. View files are application source and must not be directly web-accessible.
+These files are application source and must not be directly web-accessible.
 
 ## Simple PHP View File
 
@@ -45,35 +43,33 @@ declare(strict_types=1);
 </html>
 ```
 
-Data passed to the renderer is available as local variables. The view engine provides `$e()` for escaped output.
+Data passed to the renderer becomes local variables. The installed PHP view engine provides `$e()` for HTML escaping.
 
-## Rendering a View
+## Rendering Views with Supported Methods
 
-The `view()` helper is defined by IntisariPHP core and loaded through Composer. It returns the rendered HTML string:
+The installed core defines the `view()` helper. `bootstrap/app.php` initializes the global application used by the helper:
 
 ```php
 public function index(): string
 {
     return view('example', [
         'title' => 'Example',
-        'heading' => 'Rendered by IntisariPHP',
+        'heading' => 'Rendered view',
     ]);
 }
 ```
 
-The name `example` resolves to `resources/views/example.php`.
+`view('example')` resolves `resources/views/example.php` and returns the rendered HTML string.
 
-The application also exposes the verified renderer method:
+When an application instance is available directly, its verified render method can be used:
 
 ```php
 $html = $app->render('example', ['title' => 'Example']);
 ```
 
-Use `view()` inside controllers when the global application has been initialized. Use `$app->render()` when working directly with an application instance.
-
 ## Returning HTML from a Controller
 
-The router accepts a string return value, so a controller can return a small HTML response directly:
+The router accepts strings, so a controller can safely return a small HTML response without the view service:
 
 ```php
 public function index(): string
@@ -82,58 +78,39 @@ public function index(): string
 }
 ```
 
-Use a view file when the markup is more than a small response.
+Use a view file when the markup becomes substantial. A plain PHP `include` with output buffering is also possible, but the verified `view()` or `$app->render()` APIs provide the configured view path and data handling.
 
 ## Escaping Output
 
-Escape dynamic values before placing them in HTML:
+Escape dynamic values inside rendered templates:
 
 ```php
 <h1><?= $e($title) ?></h1>
 ```
 
-The `$e()` helper is provided inside rendered view files by the installed view engine. It escapes output for HTML. Do not print untrusted values directly:
-
-```php
-<!-- Unsafe for untrusted data -->
-<h1><?= $title ?></h1>
-```
-
-Escaping is for output safety. Validate input separately before using it in application logic.
+The `$e()` callable escapes values for HTML output. Do not print request, database, or external values directly. Escaping output does not replace input validation.
 
 ## Partials
 
-The installed view engine supports partial rendering through `$include()` inside a view:
+The installed engine supports `$include()` inside a rendered view:
 
 ```php
 <?= $include('partials.header', ['appName' => 'Intisari App']) ?>
 ```
 
-This resolves `resources/views/partials/header.php` and merges the supplied data with the current view data.
+This resolves `resources/views/partials/header.php`. The supplied data overrides matching values inherited from the parent view.
 
-For plain PHP files rendered outside the core view engine, use normal PHP `include` or `require` and handle data and escaping explicitly.
+The existing `home.php` also uses the implemented `$extend()`, `$start()`, `$end()`, and `$section()` layout APIs with `layouts/app.php`. These helpers are available only within templates rendered by the configured view engine.
 
 ## Common Mistakes
 
-### Wrong View Name
-
-`view('example')` expects `resources/views/example.php`. Nested names use dot notation, such as `view('partials.header')`.
-
-### Missing Application Initialization
-
-The global `view()` helper requires the IntisariPHP application instance. Normal web requests initialize it through `bootstrap/app.php`.
-
-### Unescaped Dynamic Output
-
-Use `$e()` for values from requests, databases, or external services before printing them into HTML.
-
-### Direct Web Access
-
-Do not expose `resources/views/` as a web root. Only `public/` should be web-accessible.
-
-### Returning a View Object
-
-The verified `view()` and `$app->render()` APIs return strings. Return that string from the controller.
+- Placing templates outside `resources/views/` without changing the configured view path.
+- Using a filename that does not match the view name.
+- Calling `view()` before the application is initialized.
+- Printing untrusted dynamic values without `$e()`.
+- Calling `$include()` or layout helpers from a PHP file that was not rendered by the view engine.
+- Returning an unsupported object instead of the rendered string.
+- Exposing `resources/views/` through the web server; only `public/` should be public.
 
 ## Next
 

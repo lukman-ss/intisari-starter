@@ -1,153 +1,51 @@
 # Composer Installation
 
-IntisariPHP Starter uses Composer's `create-project` command to scaffold a new application. This page covers the installation steps in detail.
+Composer creates the project and installs its dependencies.
 
-## Prerequisites
-
-Before installing, ensure you have:
-
-- **PHP 8.2 or newer** — run `php -v` to check
-- **Composer 2.x** — run `composer -V` to check
-
-See [Requirements](../intro/requirements.md) for a complete list of required PHP extensions.
-
-## Create a New Project
-
-Run the following command to create a new IntisariPHP Starter application:
+## Create the Project
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
-```
-
-This command:
-
-1. Downloads the IntisariPHP Starter skeleton from Packagist.
-2. Resolves and installs the IntisariPHP core framework.
-3. Installs development dependencies (PHPUnit, testing tools).
-4. Generates `composer.lock` to lock dependency versions.
-5. Configures PSR-4 autoloading for `app/` and `tests/` namespaces.
-
-Navigate into your new project:
-
-```bash
 cd my-app
 ```
 
-## Environment Setup
+`create-project` downloads the starter package and runs dependency installation in the new directory. If you already have a project checkout, run `composer install` inside it to install the exact dependency versions recorded in `composer.lock`.
 
-The starter includes an `.env.example` file with default configuration values. You must copy this file to `.env` before running the application.
+## Environment File
 
-**macOS and Linux:**
+On macOS or Linux:
 
 ```bash
 cp .env.example .env
 ```
 
-**Windows PowerShell:**
+On Windows PowerShell:
 
 ```powershell
 Copy-Item .env.example .env
 ```
 
-**Windows Command Prompt:**
+Keep `.env` local because it may contain environment-specific or sensitive values.
 
-```powershell
-copy .env.example .env
-```
+## Autoloading
 
-### Default Environment Values
-
-The `.env.example` file includes these settings:
-
-```env
-APP_NAME=IntisariPHP
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://127.0.0.1:8000
-
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_USERNAME=root
-DB_PASSWORD=
-DB_CHARSET=utf8mb4
-
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-```
-
-You can modify these values after installation to match your local environment.
-
-### Security Note
-
-**Do not commit `.env` to version control.** The `.gitignore` file included with the starter already excludes `.env` by default. This prevents sensitive configuration values (database passwords, API keys) from being exposed in your repository.
-
-## Verify the Installation
-
-Start the development server to confirm the installation succeeded:
+Composer configures PSR-4 autoloading for `App\` from `app/` and `Tests\` from `tests/`. After adding or moving classes, regenerate the autoloader when necessary:
 
 ```bash
-composer serve
+composer dump-autoload
 ```
 
-Open [http://127.0.0.1:8000](http://127.0.0.1:8000) in your browser. You should see the IntisariPHP welcome page.
+Class namespaces and filenames must match the configured directory structure and filesystem casing.
 
-Then run the test suite to confirm all components are working:
+## Common Composer Errors
 
-```bash
-composer test
-```
+- **PHP version mismatch:** run `php -v` and use PHP 8.2 or newer.
+- **Composer is unavailable:** run `composer -V`; install Composer 2.x if the command is missing.
+- **Missing PHP extension:** read Composer's error, enable the named extension, then rerun the command.
+- **Permission denied:** create the project in a writable directory and verify Composer can write its cache and `vendor/`.
+- **Dependency resolution failure:** use the committed `composer.lock` with `composer install`; do not delete it as a first troubleshooting step.
 
-Expected output:
-
-```text
-PHPUnit 10.x by Sebastian Bergmann and contributors.
-
-OK (X tests, Y assertions)
-```
-
-## Troubleshooting
-
-### PHP version too old
-
-The starter requires PHP 8.2 or newer. If you see a version error, upgrade PHP:
-
-```bash
-php -v
-```
-
-On Ubuntu/Debian: `sudo apt install php8.2`
-
-On macOS: `brew install php@8.2`
-
-On Windows: Download from [windows.php.net](https://windows.php.net/download/).
-
-### Composer not installed
-
-If `composer` is not recognized, install Composer from [getcomposer.org](https://getcomposer.org).
-
-```bash
-composer -V
-```
-
-### Permission errors
-
-If Composer cannot write to the target directory, create the project in a writable location:
-
-```bash
-composer create-project lukman-ss/intisari-starter ~/projects/my-app
-```
-
-Or adjust directory permissions before running the command.
-
-## Next Steps
-
-Once installation is complete:
-
-1. Continue to [Running the Application](running.md) to start the development server.
-2. Read [Application Overview](../overview/index.md) to understand the project structure.
-3. Follow the [Build Your First App](../tutorials/build-your-first-app.md) tutorial.
+See [Installation Troubleshooting](troubleshooting.md) for application startup issues.
 
 ## Next
 

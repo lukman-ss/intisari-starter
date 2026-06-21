@@ -1,25 +1,18 @@
 # Installation Troubleshooting
 
-Use these checks when a new IntisariPHP Starter application does not run as expected.
+Use these checks when a local installation does not run as expected.
 
-## Port Already in Use
+## PHP Is Too Old
 
-Start the development server on another port:
+Run `php -v`. The active command-line PHP version must be 8.2 or newer. If several PHP versions are installed, verify the terminal resolves the intended executable.
 
-```bash
-php intisari serve --port=8080
-```
+## Composer Is Missing
 
-On Windows PowerShell, identify the process using port 8000:
+Run `composer -V`. Install Composer 2.x or correct your `PATH` if the command is not found.
 
-```powershell
-Get-NetTCPConnection -LocalPort 8000 | Select-Object OwningProcess
-Stop-Process -Id <PID>
-```
+## Environment File Is Missing
 
-## Missing Environment File
-
-Copy the environment template:
+On macOS or Linux:
 
 ```bash
 cp .env.example .env
@@ -31,39 +24,17 @@ On Windows PowerShell:
 Copy-Item .env.example .env
 ```
 
-## Blank Page
+## Port Is Already in Use
 
-For local development, confirm these values and inspect the terminal output:
-
-```env
-APP_ENV=local
-APP_DEBUG=true
-```
-
-## Storage Permissions
-
-The application may need write access to its runtime directories:
+Select another supported port:
 
 ```bash
-mkdir -p storage/cache storage/logs storage/framework
+php intisari serve --port=8080
 ```
 
-On Windows PowerShell:
+## SQLite File Is Missing
 
-```powershell
-New-Item -ItemType Directory -Force -Path storage/cache, storage/logs, storage/framework
-```
-
-## SQLite Connection
-
-Keep SQLite as the default local connection:
-
-```env
-DB_CONNECTION=sqlite
-DB_DATABASE=database/database.sqlite
-```
-
-Create the database file when needed:
+The default configuration expects `database/database.sqlite`. Create an empty file on macOS or Linux:
 
 ```bash
 touch database/database.sqlite
@@ -72,8 +43,45 @@ touch database/database.sqlite
 On Windows PowerShell:
 
 ```powershell
-New-Item -ItemType File -Force -Path database/database.sqlite
+New-Item -ItemType File -Force database/database.sqlite
 ```
+
+Confirm `.env` contains `DB_CONNECTION=sqlite` and the correct `DB_DATABASE` path.
+
+## Storage Is Not Writable
+
+Verify the current user can create files under `storage/`. Create missing runtime directories if needed:
+
+```bash
+mkdir -p storage/cache storage/logs storage/framework
+```
+
+On Windows PowerShell:
+
+```powershell
+New-Item -ItemType Directory -Force storage/cache, storage/logs, storage/framework
+```
+
+## Blank Page
+
+Check the terminal running the server and application logs under `storage/logs/`. For local diagnosis, set these values in `.env`:
+
+```env
+APP_ENV=local
+APP_DEBUG=true
+```
+
+Do not enable `APP_DEBUG` in production because detailed errors may expose internal information.
+
+## Route Not Found
+
+Confirm the path and HTTP method are registered in `routes/web.php`, then list registered routes:
+
+```bash
+php intisari route:list
+```
+
+Route paths are case-sensitive. Also confirm the URL uses the same host and port as the running server.
 
 ## Next
 

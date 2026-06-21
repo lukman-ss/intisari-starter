@@ -27,9 +27,8 @@ public/index.php
   v
 Application::run()
   |
-  +--> bootstrap and boot core service providers
-  +--> middleware pipeline, when runtime middleware is registered
-  +--> match and dispatch route handler
+  +--> configured middleware pipeline (conceptual)
+  +--> match route and run its handler
   |
   v
 HTTP response
@@ -62,9 +61,9 @@ When `.env` exists, `bootstrap/app.php` loads it. Configuration files are then l
 
 See [Configuration](../basics/configuration.md) for the available starter configuration.
 
-## 6. Service Providers Are Registered and Booted
+## 6. Service Providers Are Registered When Configured
 
-`bootstrap/app.php` explicitly registers `App\Providers\AppServiceProvider`. Later, `Application::run()` bootstraps and boots the core service providers supplied by IntisariPHP.
+`bootstrap/app.php` currently registers `App\Providers\AppServiceProvider`. Additional application providers participate only when they are explicitly registered in the bootstrap or through supported configuration.
 
 ## 7. `routes/web.php` Is Loaded
 
@@ -78,13 +77,13 @@ The route file registers handlers with `$app->get(...)` and the other supported 
 
 ## 8. Middleware Is Applied When Registered
 
-Conceptually, registered runtime middleware wraps routing and can inspect a request before dispatch or modify the returned response.
+Conceptually, configured middleware wraps request handling and can inspect a request before the route handler or inspect the response afterward:
 
 ```text
 Request -> Middleware -> Route handler -> Middleware -> Response
 ```
 
-Only middleware added to the application's runtime middleware stack participates in this pipeline. See [Middleware](../basics/middleware.md).
+The exact middleware dispatch is handled by the installed runtime and is not defined in the starter's entry-point files. Middleware participates only when configured through APIs supported by that runtime. See [Middleware](../basics/middleware.md).
 
 ## 9. The Matching Route Handler Runs
 
@@ -94,7 +93,7 @@ See [Controllers](../basics/controllers.md) for controller organization and retu
 
 ## 10. The Response Is Returned
 
-The handler result is normalized into an HTTP response. `Application::run()` sends the response and completes the HTTP lifecycle.
+The application returns the handler result as an HTTP response. `public/index.php` calls `$app->run()` to complete request handling and send the result to the client.
 
 ## Next
 
