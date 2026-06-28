@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "478fdb2a11643febbf4038ebb29aeb5e",
+    "content-hash": "7c6623c7ef2e5e4ceeb6d2855caa69f9",
     "packages": [
         {
             "name": "lukman-ss/config",
@@ -2141,7 +2141,7 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {},
-    "prefer-stable": true,
+    "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": ">=8.2"

@@ -8,13 +8,6 @@ final class HomeController
 {
     public function index(): string
     {
-        if (function_exists('view')) {
-            try {
-                return view('home');
-            } catch (\Throwable) {
-            }
-        }
-
-        return 'Welcome to IntisariPHP';
+        return 'Welcome to IntisariPHP Starter.';
     }
 }

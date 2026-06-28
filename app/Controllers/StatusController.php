@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-use Lukman\Http\Response;
-
 final class StatusController
 {
-    public function index(): Response
+    public function index(): string
     {
-        return Response::json(['status' => 'ok']);
+        return 'OK';
     }
 }

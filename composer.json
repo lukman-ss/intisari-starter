@@ -3,14 +3,6 @@
     "description": "Starter project for IntisariPHP applications.",
     "type": "project",
     "license": "MIT",
-    "keywords": [
-        "php",
-        "framework",
-        "starter",
-        "intisari",
-        "mvc",
-        "router"
-    ],
     "require": {
         "php": ">=8.2",
         "lukman-ss/intisari": "^1.0"
@@ -32,9 +24,7 @@
         "test": "phpunit",
         "console": "php intisari",
         "serve": "php intisari serve",
-        "docs:check": "php scripts/check-docs.php",
-        "source:check": "php scripts/check-source-integrity.php"
-    },
-    "minimum-stability": "stable",
-    "prefer-stable": true
+        "source:check": "php scripts/check-source-integrity.php",
+        "docs:check": "php scripts/check-docs.php"
+    }
 }
