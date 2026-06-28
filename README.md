@@ -1,61 +1,57 @@
 # IntisariPHP Starter
 
-![IntisariPHP Starter Hero](docs/hero.png)
-
-A minimal project starter for building PHP applications with IntisariPHP.
+A minimal, fast, and clean starter project for IntisariPHP applications.
 
 ## Requirements
 
-- PHP 8.2 or newer
-- Composer 2.x
+- PHP >= 8.2
+- Composer
 
 ## Quick Start
+
+Create a new project using Composer:
 
 ```bash
 composer create-project lukman-ss/intisari-starter my-app
 cd my-app
 cp .env.example .env
-composer serve
 ```
 
-The application is available at [http://127.0.0.1:8000](http://127.0.0.1:8000).
-
 ## Development Server
+
+Start the built-in development server:
 
 ```bash
 composer serve
 ```
 
-The built-in development server is intended for local development only.
+The application will be accessible at `http://127.0.0.1:8000`.
 
-## Running Tests
+## Testing & Quality
+
+Run the test suite:
 
 ```bash
 composer test
 ```
 
-## Documentation
+Check source integrity:
 
-Start with the [documentation index](docs/index.md) or the [getting started guide](docs/getting-started.md). See the [CLI guide](docs/cli/index.md) for available console commands.
-
-## Project Structure
-
-```text
-app/          Application classes
-bootstrap/    Application bootstrap
-config/       Configuration files
-database/     Local database files
-public/       Web entry point
-resources/    View templates
-routes/       Web and console routes
-storage/      Runtime files
-tests/        PHPUnit tests
+```bash
+composer source:check
 ```
 
-## IntisariPHP core
+Check documentation integrity:
 
-IntisariPHP Starter uses [`lukman-ss/intisari`](https://packagist.org/packages/lukman-ss/intisari) as its framework runtime.
+```bash
+composer docs:check
+```
+
+## Documentation
+
+For more information on how to build applications, refer to the documentation in the `docs` directory.
+- [REST API Tutorial](docs/tutorials/rest-api.md)
 
 ## License
 
-MIT
+This project is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true">
+
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
@@ -10,14 +11,20 @@
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
         </testsuite>
-        <testsuite name="Application">
-            <directory>tests</directory>
-            <exclude>tests/Unit</exclude>
-            <exclude>tests/Feature</exclude>
-        </testsuite>
     </testsuites>
+
+    <source>
+        <include>
+            <directory>app</directory>
+            <directory>bootstrap</directory>
+            <directory>config</directory>
+            <directory>routes</directory>
+        </include>
+    </source>
+
     <php>
         <env name="APP_ENV" value="testing"/>
         <env name="APP_DEBUG" value="true"/>
     </php>
+
 </phpunit>

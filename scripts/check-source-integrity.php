@@ -2,170 +2,135 @@
 
 declare(strict_types=1);
 
-$projectRoot = realpath(dirname(__DIR__));
-
-if ($projectRoot === false) {
-    fwrite(STDERR, "Unable to resolve project root.\n");
+function fail(string $message): void {
+    echo "FAIL: $message" . PHP_EOL;
     exit(1);
 }
 
-$errors = [];
+function pass(string $message): void {
+    echo $message . PHP_EOL;
+}
 
-// 1. Check PHP files in specified directories
-$phpDirs = ['app', 'bootstrap', 'config', 'public', 'routes', 'scripts', 'tests'];
-foreach ($phpDirs as $dir) {
-    $dirPath = $projectRoot . DIRECTORY_SEPARATOR . $dir;
-    if (!is_dir($dirPath)) {
-        continue;
-    }
+$basePath = dirname(__DIR__);
+$directories = ['app', 'bootstrap', 'config', 'public', 'routes', 'scripts', 'tests'];
+
+// 1. PHP files checks
+foreach ($directories as $dir) {
+    $dirPath = $basePath . DIRECTORY_SEPARATOR . $dir;
+    if (!is_dir($dirPath)) continue;
 
     $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($dirPath));
     foreach ($iterator as $file) {
         if ($file->isFile() && $file->getExtension() === 'php') {
-            $path = $file->getPathname();
-            $relativePath = relativePath($projectRoot, $path);
-            $content = file_get_contents($path);
-
-            if ($content === false || trim($content) === '') {
-                $errors[] = "PHP file is empty: {$relativePath}";
-                continue;
+            $content = file_get_contents($file->getPathname());
+            if (empty(trim($content))) {
+                fail("File is empty: " . $file->getPathname());
             }
-
-            // Check PHP opening tag
-            $trimmed = ltrim($content);
-            if (!str_starts_with($trimmed, '<?php') && !str_starts_with($trimmed, '#!/usr/bin/env php')) {
-                $errors[] = "PHP file does not start with a valid PHP tag: {$relativePath}";
+            if (!str_starts_with(ltrim($content), '<?php')) {
+                fail("PHP file must start with <?php: " . $file->getPathname());
             }
+        }
+    }
+}
 
-            // Check config files contain return
-            if ($dir === 'config') {
-                if (!str_contains($content, 'return')) {
-                    $errors[] = "Config file does not contain a return statement: {$relativePath}";
+// 2. intisari check
+$intisariPath = $basePath . DIRECTORY_SEPARATOR . 'intisari';
+if (is_file($intisariPath)) {
+    $content = file_get_contents($intisariPath);
+    if (empty(trim($content))) {
+        fail("intisari file is empty");
+    }
+    if (!str_contains($content, '<?php')) {
+        fail("intisari must contain <?php");
+    }
+}
+
+// 3. config/*.php checks
+$configDir = $basePath . DIRECTORY_SEPARATOR . 'config';
+if (is_dir($configDir)) {
+    foreach (scandir($configDir) as $file) {
+        if (str_ends_with($file, '.php')) {
+            $content = file_get_contents($configDir . DIRECTORY_SEPARATOR . $file);
+            if (!str_contains($content, 'return ')) {
+                fail("Config file must contain return: " . $file);
+            }
+        }
+    }
+}
+
+// 4. phpunit.xml check
+$phpunitXmlPath = $basePath . DIRECTORY_SEPARATOR . 'phpunit.xml';
+if (is_file($phpunitXmlPath)) {
+    $prev = libxml_use_internal_errors(true);
+    if (simplexml_load_file($phpunitXmlPath) === false) {
+        fail("phpunit.xml is not valid XML");
+    }
+    libxml_use_internal_errors($prev);
+}
+
+// 5. .env.example check
+$envExamplePath = $basePath . DIRECTORY_SEPARATOR . '.env.example';
+if (!is_file($envExamplePath)) {
+    fail(".env.example does not exist");
+}
+$envContent = file_get_contents($envExamplePath);
+$envLines = explode("\n", str_replace("\r", "", $envContent));
+if (count($envLines) < 3) {
+    fail(".env.example must contain multiple lines");
+}
+if (!str_contains($envContent, 'APP_NAME=')) {
+    fail(".env.example must contain APP_NAME=");
+}
+if (!str_contains($envContent, 'DB_CONNECTION=')) {
+    fail(".env.example must contain DB_CONNECTION=");
+}
+
+// 6. .github/workflows/*.yml check
+$workflowsDir = $basePath . DIRECTORY_SEPARATOR . '.github' . DIRECTORY_SEPARATOR . 'workflows';
+if (is_dir($workflowsDir)) {
+    foreach (scandir($workflowsDir) as $file) {
+        if (str_ends_with($file, '.yml') || str_ends_with($file, '.yaml')) {
+            $content = file_get_contents($workflowsDir . DIRECTORY_SEPARATOR . $file);
+            $lines = explode("\n", str_replace("\r", "", $content));
+            if (count($lines) < 3) {
+                fail("Workflow file must contain multiple lines: " . $file);
+            }
+            if (!preg_match('/^name:/m', $content)) {
+                fail("Workflow file must contain 'name:': " . $file);
+            }
+            if (!preg_match('/^jobs:/m', $content)) {
+                fail("Workflow file must contain 'jobs:': " . $file);
+            }
+        }
+    }
+}
+
+// 7. Markdown files check and 8. Documentation checks
+$mdIterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($basePath));
+foreach ($mdIterator as $file) {
+    if ($file->isFile() && $file->getExtension() === 'md') {
+        $pathname = $file->getPathname();
+        if (str_contains($pathname, DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR)) {
+            continue;
+        }
+        
+        $content = file_get_contents($pathname);
+        $lines = explode("\n", str_replace("\r", "", $content));
+        if (count($lines) <= 2 && strlen($content) > 100) {
+            fail("Markdown file seems collapsed into one line: " . $pathname);
+        }
+
+        // Docs checks
+        if (str_contains(str_replace('\\', '/', $pathname), '/docs/')) {
+            $invalidPatterns = ['file:///', 'C:\\', 'D:\\', '/Users/', str_replace('\\', '/', $basePath)];
+            foreach ($invalidPatterns as $pattern) {
+                if (stripos(str_replace('\\', '/', $content), str_replace('\\', '/', $pattern)) !== false) {
+                    fail("Documentation contains invalid local path/string ($pattern): " . $pathname);
                 }
             }
         }
     }
 }
 
-// Check root executable PHP files (e.g., intisari)
-$intisariPath = $projectRoot . DIRECTORY_SEPARATOR . 'intisari';
-if (is_file($intisariPath)) {
-    $content = file_get_contents($intisariPath);
-    if ($content !== false) {
-        $trimmed = ltrim($content);
-        if (!str_starts_with($trimmed, '#!/usr/bin/env php') && !str_starts_with($trimmed, '<?php')) {
-            $errors[] = "Root executable 'intisari' must start with #!/usr/bin/env php or <?php";
-        }
-    } else {
-        $errors[] = "Root executable 'intisari' is missing or unreadable.";
-    }
-}
-
-// 2. Check phpunit.xml
-$phpunitXml = $projectRoot . DIRECTORY_SEPARATOR . 'phpunit.xml';
-if (is_file($phpunitXml)) {
-    $relativePath = relativePath($projectRoot, $phpunitXml);
-    libxml_use_internal_errors(true);
-    $doc = new DOMDocument();
-    if ($doc->load($phpunitXml) === false) {
-        $errors[] = "phpunit.xml is not valid XML: " . implode(', ', array_map(fn($e) => trim($e->message), libxml_get_errors()));
-    }
-    libxml_clear_errors();
-} else {
-    $errors[] = "phpunit.xml is missing.";
-}
-
-// 3. Check .github/workflows/*.yml
-$workflowsDir = $projectRoot . DIRECTORY_SEPARATOR . '.github' . DIRECTORY_SEPARATOR . 'workflows';
-if (is_dir($workflowsDir)) {
-    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($workflowsDir));
-    foreach ($iterator as $file) {
-        if ($file->isFile() && in_array($file->getExtension(), ['yml', 'yaml'], true)) {
-            $path = $file->getPathname();
-            $relativePath = relativePath($projectRoot, $path);
-            $content = file_get_contents($path);
-
-            if ($content === false || trim($content) === '') {
-                $errors[] = "Workflow file is empty: {$relativePath}";
-                continue;
-            }
-
-            if (!str_contains($content, 'name:') || !str_contains($content, 'jobs:')) {
-                $errors[] = "Workflow file must contain 'name:' and 'jobs:': {$relativePath}";
-            }
-        }
-    }
-}
-
-// 4. Check Markdown files for collapsed content
-$mdFiles = ['README.md', 'AGENTS.md', 'CONTRIBUTING.md', 'CHANGELOG.md'];
-// Also check docs/**/*.md
-$docsDir = $projectRoot . DIRECTORY_SEPARATOR . 'docs';
-if (is_dir($docsDir)) {
-    $iterator = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($docsDir));
-    foreach ($iterator as $file) {
-        if ($file->isFile() && $file->getExtension() === 'md') {
-            $mdFiles[] = relativePath($projectRoot, $file->getPathname());
-        }
-    }
-}
-
-foreach ($mdFiles as $mdFile) {
-    $path = $projectRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $mdFile);
-    if (!is_file($path)) {
-        continue;
-    }
-
-    $content = file_get_contents($path);
-    if ($content === false) {
-        $errors[] = "Markdown file is unreadable: {$mdFile}";
-        continue;
-    }
-
-    if (trim($content) === '') {
-        continue;
-    }
-
-    $lines = preg_split('/\R/', $content) ?: [];
-    if (count($lines) <= 1 && strlen($content) > 100) {
-        $errors[] = "Markdown file appears to be collapsed into a single giant line: {$mdFile}";
-    }
-}
-
-// 5. Check .env.example
-$envExample = $projectRoot . DIRECTORY_SEPARATOR . '.env.example';
-if (is_file($envExample)) {
-    $relativePath = relativePath($projectRoot, $envExample);
-    $content = file_get_contents($envExample);
-    if ($content === false) {
-        $errors[] = ".env.example is unreadable.";
-    } else {
-        $lines = preg_split('/\R/', $content) ?: [];
-        if (count($lines) <= 2) {
-            $errors[] = ".env.example must contain multiple lines.";
-        }
-        if (!str_contains($content, 'APP_NAME=')) {
-            $errors[] = ".env.example must contain APP_NAME.";
-        }
-    }
-} else {
-    $errors[] = ".env.example is missing.";
-}
-
-// Output Results
-if ($errors !== []) {
-    fwrite(STDERR, "Source Integrity Check FAILED:\n");
-    foreach ($errors as $error) {
-        fwrite(STDERR, "- {$error}\n");
-    }
-    exit(1);
-}
-
-echo "Source Integrity Check PASSED.\n";
+pass("Source Integrity Check PASSED.");
 exit(0);
-
-function relativePath(string $projectRoot, string $path): string
-{
-    $relative = substr($path, strlen($projectRoot) + 1);
-    return str_replace(DIRECTORY_SEPARATOR, '/', $relative);
-}

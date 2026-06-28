@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-$env = static function (string $key, mixed $default = null): mixed {
-    return $_ENV[$key] ?? $_SERVER[$key] ?? $default;
-};
+$env = static fn (string $key, mixed $default = null): mixed => $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key) ?: $default;
 
 return [
+
     'driver' => $env('SESSION_DRIVER', 'file'),
+
     'lifetime' => (int) $env('SESSION_LIFETIME', 120),
-    'files' => dirname(__DIR__) . '/storage/framework/sessions',
+
 ];
