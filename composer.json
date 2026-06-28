@@ -32,7 +32,8 @@
         "test": "phpunit",
         "console": "php intisari",
         "serve": "php intisari serve",
-        "docs:check": "php scripts/check-docs.php"
+        "docs:check": "php scripts/check-docs.php",
+        "source:check": "php scripts/check-source-integrity.php"
     },
     "minimum-stability": "stable",
     "prefer-stable": true

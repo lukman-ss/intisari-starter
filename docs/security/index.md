@@ -74,19 +74,22 @@ The installed core exposes `$app->validate(...)`, but the starter does not confi
 
 Raw dynamic HTML output is unsafe because a value can contain executable markup:
 
-```php
+**Unsafe Example:**
+```html
 <p>Welcome, <?= $value ?></p>
 ```
 
 Use `htmlspecialchars()` as the safe default for text and HTML attribute values:
 
-```php
+**Safe Example (Standard PHP):**
+```html
 <p>Welcome, <?= htmlspecialchars($value, ENT_QUOTES, 'UTF-8') ?></p>
 ```
 
 The verified PHP view engine also injects a local `$e()` callable into rendered templates:
 
-```php
+**Safe Example (Inside Views):**
+```html
 <p>Welcome, <?= $e($value) ?></p>
 ```
 

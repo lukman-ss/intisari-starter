@@ -41,6 +41,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.2.1] - 2026-06-28
+
+### Added
+- Added source integrity checker (`scripts/check-source-integrity.php`) to prevent codebase structure loss.
+
+### Fixed
+- Restored corrupted PHP source files, PHPUnit XML, GitHub Actions workflow YAML, and docs quality check scripts.
+- Fixed route registration consistency in `routes/web.php`.
+- Fixed security documentation output escaping examples in `docs/security/index.md`.
+- Removed all local machine links and absolute paths from public documentation.
+- Improved CI validation by integrating the source integrity check.
+
+---
+
 ## [1.0.1] - 2026-06-17
 
 ### Added

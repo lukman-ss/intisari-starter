@@ -36,6 +36,9 @@ jobs:
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
+      - name: Run source integrity checks
+        run: composer source:check
+
       - name: Run tests
         run: composer test
 

@@ -28,11 +28,25 @@ Complete this checklist before tagging a new IntisariPHP Starter release. This p
   composer test
   ```
 
+- [ ] Run the source integrity checker:
+
+  ```bash
+  composer source:check
+  ```
+
+- [ ] Verify PHP syntax for all source files:
+
+  ```bash
+  find . -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 php -l
+  ```
+
 - [ ] Run the Markdown quality checker:
 
   ```bash
   composer docs:check
   ```
+
+- [ ] Confirm GitHub Actions CI workflow configuration (`.github/workflows/tests.yml`) is valid and passing.
 
 ## Intisari CLI Checks
 

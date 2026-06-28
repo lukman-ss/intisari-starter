@@ -59,7 +59,7 @@ Begin with [Getting Started](getting-started.md), check the [Requirements](intro
 
 - [Database](database/index.md)
 
-### Command Line
+### CLI
 
 - [Command Line](cli/index.md)
 
