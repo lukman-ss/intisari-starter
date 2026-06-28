@@ -6,36 +6,16 @@ namespace Tests\Feature;
 
 use PHPUnit\Framework\TestCase;
 
-final class RouteFileTest extends TestCase
+class RouteFileTest extends TestCase
 {
-    private string $routesPath;
-
-    protected function setUp(): void
+    public function testRouteFileContent(): void
     {
-        parent::setUp();
-        $this->routesPath = __DIR__ . '/../../routes/web.php';
-    }
-
-    public function testRoutesFileExists(): void
-    {
-        $this->assertFileExists($this->routesPath);
-    }
-
-    public function testRoutesFileStartsWithPhpTag(): void
-    {
-        $content = file_get_contents($this->routesPath);
+        $path = dirname(__DIR__, 2) . '/routes/web.php';
+        $this->assertFileExists($path);
+        
+        $content = file_get_contents($path);
         $this->assertStringStartsWith('<?php', ltrim($content));
-    }
-
-    public function testRoutesFileContainsHomeController(): void
-    {
-        $content = file_get_contents($this->routesPath);
         $this->assertStringContainsString('HomeController', $content);
-    }
-
-    public function testRoutesFileContainsStatusController(): void
-    {
-        $content = file_get_contents($this->routesPath);
         $this->assertStringContainsString('StatusController', $content);
     }
 }

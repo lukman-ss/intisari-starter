@@ -26,5 +26,4 @@
         <env name="APP_ENV" value="testing"/>
         <env name="APP_DEBUG" value="true"/>
     </php>
-
 </phpunit>

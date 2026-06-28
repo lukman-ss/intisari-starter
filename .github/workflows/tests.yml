@@ -2,40 +2,35 @@ name: Tests
 
 on:
   push:
-    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main", "master" ]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    
     strategy:
       matrix:
-        php-version: ['8.2', '8.3']
+        php: ['8.2', '8.3']
 
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Setup PHP
-      uses: shivammathur/setup-php@v2
-      with:
-        php-version: ${{ matrix.php-version }}
-        tools: composer:v2
-        coverage: none
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
 
-    - name: Validate composer.json
-      run: composer validate --strict
+      - name: Validate Composer
+        run: composer validate --strict
 
-    - name: Install Dependencies
-      run: composer install --prefer-dist --no-progress
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
 
-    - name: Source Integrity Check
-      run: composer source:check
+      - name: Source Integrity
+        run: composer source:check
 
-    - name: Documentation Check
-      run: composer docs:check
+      - name: Run Tests
+        run: composer test
 
-    - name: Run PHPUnit Tests
-      run: composer test
+      - name: Check Docs
+        run: composer docs:check
