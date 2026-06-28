@@ -84,6 +84,10 @@ Begin with [Getting Started](getting-started.md), check the [Requirements](intro
 
 - [Release Readiness Checklist](release-readiness.md)
 
+### Postmortems
+
+- [v1.2.0 Source Formatting Corruption](postmortems/v1.2.0-source-corruption.md)
+
 ## Next
 
 Continue to [Getting Started](getting-started.md).
