@@ -14,6 +14,18 @@ Keep the starter small. Prefer targeted changes and existing project patterns ov
 - Do not claim Laravel or CodeIgniter compatibility.
 - Keep the web document root at `public/`; never expose the project root.
 
+## Code Integrity Guardrails
+
+- Never replace source files with rendered HTML/Markdown text.
+- Never remove `<?php` from PHP files.
+- Never collapse PHP/XML/YAML/Markdown files into a single line.
+- Always edit raw files, never edit or output rendered previews.
+- Always run `php -l` to lint PHP files.
+- Always run `composer source:check` before committing.
+- Always run `composer test` and `composer docs:check`.
+- Never tag a release without a clean validation pass.
+- Do not reuse or overwrite broken public tags.
+
 ## Sources of Truth
 
 - `composer.json`: dependencies, autoloading, and Composer scripts.
@@ -36,6 +48,7 @@ Always run these commands before finishing:
 
 ```bash
 composer validate --strict
+composer source:check
 composer test
 composer docs:check
 ```
